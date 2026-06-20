@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/common/Sidebar/Sidebar'
 import Topbar from '../components/common/Topbar/Topbar'
 import { useAuth } from '../contexts/AuthContext'
+import { useTheme } from '../contexts/ThemeContext'
 import {
   LayoutDashboard, BookOpen, Users, GraduationCap, ClipboardList,
   Calendar, FileText, CreditCard, Bell, MessageSquare, BarChart3,
@@ -13,136 +14,148 @@ import './DashboardLayout.css'
 
 const MENU_BY_ROLE = {
   admin: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Users, label: 'User Management', path: '/users', children: [
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <Users size={20} />, label: 'User Management', path: '/users', children: [
       { label: 'All Users', path: '/users' },
       { label: 'Roles & Permissions', path: '/users/roles' },
       { label: 'Bulk Import', path: '/users/import' },
     ]},
-    { icon: Building2, label: 'Departments', path: '/departments' },
-    { icon: BookOpen, label: 'Courses', path: '/courses' },
-    { icon: Calendar, label: 'Academic Calendar', path: '/calendar' },
-    { icon: CreditCard, label: 'Fee Structure', path: '/fees' },
-    { icon: BarChart3, label: 'Reports & Analytics', path: '/reports' },
-    { icon: Brain, label: 'AI Services', path: '/ai-config' },
-    { icon: Bell, label: 'Notifications', path: '/notifications' },
-    { icon: Settings, label: 'Settings', path: '/settings' },
+    { icon: <Building2 size={20} />, label: 'Departments', path: '/departments' },
+    { icon: <BookOpen size={20} />, label: 'Courses', path: '/courses' },
+    { icon: <Calendar size={20} />, label: 'Academic Calendar', path: '/calendar' },
+    { icon: <CreditCard size={20} />, label: 'Fee Structure', path: '/fees' },
+    { icon: <BarChart3 size={20} />, label: 'Reports & Analytics', path: '/reports' },
+    { icon: <Brain size={20} />, label: 'AI Services', path: '/ai-config' },
+    { icon: <Bell size={20} />, label: 'Notifications', path: '/notifications' },
+    { icon: <Settings size={20} />, label: 'Settings', path: '/settings' },
   ],
   vc: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: BarChart3, label: 'University Analytics', path: '/analytics' },
-    { icon: UserCheck, label: 'Approvals', path: '/approvals' },
-    { icon: Building2, label: 'Faculties', path: '/faculties' },
-    { icon: Award, label: 'Programs', path: '/programs' },
-    { icon: ScrollText, label: 'Announcements', path: '/announcements' },
-    { icon: MessageSquare, label: 'Messages', path: '/messages' },
-    { icon: Brain, label: 'AI Insights', path: '/ai-insights' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <BarChart3 size={20} />, label: 'University Analytics', path: '/analytics' },
+    { icon: <UserCheck size={20} />, label: 'Approvals', path: '/approvals' },
+    { icon: <Building2 size={20} />, label: 'Faculties', path: '/faculties' },
+    { icon: <Award size={20} />, label: 'Programs', path: '/programs' },
+    { icon: <ScrollText size={20} />, label: 'Announcements', path: '/announcements' },
+    { icon: <MessageSquare size={20} />, label: 'Messages', path: '/messages' },
+    { icon: <Brain size={20} />, label: 'AI Insights', path: '/ai-insights' },
   ],
   dean: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Building2, label: 'Departments', path: '/departments' },
-    { icon: Users, label: 'Faculty Members', path: '/faculty' },
-    { icon: BookOpen, label: 'Courses', path: '/courses' },
-    { icon: Award, label: 'Programs', path: '/programs' },
-    { icon: BarChart3, label: 'Performance', path: '/performance' },
-    { icon: ClipboardList, label: 'Curriculum Review', path: '/curriculum' },
-    { icon: Brain, label: 'AI Analytics', path: '/ai-analytics' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <Building2 size={20} />, label: 'Departments', path: '/departments' },
+    { icon: <Users size={20} />, label: 'Faculty Members', path: '/faculty' },
+    { icon: <BookOpen size={20} />, label: 'Courses', path: '/courses' },
+    { icon: <Award size={20} />, label: 'Programs', path: '/programs' },
+    { icon: <BarChart3 size={20} />, label: 'Performance', path: '/performance' },
+    { icon: <ClipboardList size={20} />, label: 'Curriculum Review', path: '/curriculum' },
+    { icon: <Brain size={20} />, label: 'AI Analytics', path: '/ai-analytics' },
   ],
   hod: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: Users, label: 'Faculty', path: '/faculty' },
-    { icon: BookOpen, label: 'Courses', path: '/courses' },
-    { icon: GraduationCap, label: 'Students', path: '/students' },
-    { icon: Calendar, label: 'Timetable', path: '/timetable' },
-    { icon: ClipboardList, label: 'Workload', path: '/workload' },
-    { icon: BarChart3, label: 'Reports', path: '/reports' },
-    { icon: Brain, label: 'AI Scheduler', path: '/ai-scheduler' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <Users size={20} />, label: 'Faculty', path: '/faculty' },
+    { icon: <BookOpen size={20} />, label: 'Courses', path: '/courses' },
+    { icon: <GraduationCap size={20} />, label: 'Students', path: '/students' },
+    { icon: <Calendar size={20} />, label: 'Timetable', path: '/timetable' },
+    { icon: <ClipboardList size={20} />, label: 'Workload', path: '/workload' },
+    { icon: <BarChart3 size={20} />, label: 'Reports', path: '/reports' },
+    { icon: <Brain size={20} />, label: 'AI Scheduler', path: '/ai-scheduler' },
   ],
   teacher: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: BookOpen, label: 'My Courses', path: '/courses' },
-    { icon: PenTool, label: 'Assignments', path: '/assignments' },
-    { icon: ClipboardList, label: 'Quizzes', path: '/quizzes' },
-    { icon: BookMarked, label: 'Gradebook', path: '/gradebook' },
-    { icon: UserCheck, label: 'Attendance', path: '/attendance' },
-    { icon: GraduationCap, label: 'Students', path: '/students' },
-    { icon: MessageSquare, label: 'Messages', path: '/messages' },
-    { icon: Calendar, label: 'Schedule', path: '/schedule' },
-    { icon: Brain, label: 'AI Assistant', path: '/ai-assistant' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <BookOpen size={20} />, label: 'My Courses', path: '/courses' },
+    { icon: <PenTool size={20} />, label: 'Assignments', path: '/assignments' },
+    { icon: <ClipboardList size={20} />, label: 'Quizzes', path: '/quizzes' },
+    { icon: <BookMarked size={20} />, label: 'Gradebook', path: '/gradebook' },
+    { icon: <UserCheck size={20} />, label: 'Attendance', path: '/attendance' },
+    { icon: <GraduationCap size={20} />, label: 'Students', path: '/students' },
+    { icon: <MessageSquare size={20} />, label: 'Messages', path: '/messages' },
+    { icon: <Calendar size={20} />, label: 'Schedule', path: '/schedule' },
+    { icon: <Brain size={20} />, label: 'AI Assistant', path: '/ai-assistant' },
   ],
   student: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: BookOpen, label: 'My Courses', path: '/courses' },
-    { icon: PenTool, label: 'Assignments', path: '/assignments' },
-    { icon: ClipboardList, label: 'Quizzes & Exams', path: '/exams' },
-    { icon: BookMarked, label: 'Grades', path: '/grades' },
-    { icon: Calendar, label: 'Timetable', path: '/timetable' },
-    { icon: CreditCard, label: 'Fee & Payments', path: '/fees' },
-    { icon: FileText, label: 'Transcripts', path: '/transcripts' },
-    { icon: MessageSquare, label: 'Messages', path: '/messages' },
-    { icon: Brain, label: 'AI Study Buddy', path: '/ai-assistant' },
-    { icon: HelpCircle, label: 'Help & Support', path: '/support' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <BookOpen size={20} />, label: 'My Courses', path: '/courses' },
+    { icon: <PenTool size={20} />, label: 'Assignments', path: '/assignments' },
+    { icon: <ClipboardList size={20} />, label: 'Quizzes & Exams', path: '/exams' },
+    { icon: <BookMarked size={20} />, label: 'Grades', path: '/grades' },
+    { icon: <Calendar size={20} />, label: 'Timetable', path: '/timetable' },
+    { icon: <CreditCard size={20} />, label: 'Fee & Payments', path: '/fees' },
+    { icon: <FileText size={20} />, label: 'Transcripts', path: '/transcripts' },
+    { icon: <MessageSquare size={20} />, label: 'Messages', path: '/messages' },
+    { icon: <Brain size={20} />, label: 'AI Study Buddy', path: '/ai-assistant' },
+    { icon: <HelpCircle size={20} />, label: 'Help & Support', path: '/support' },
   ],
   registrar: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: GraduationCap, label: 'Admissions', path: '/admissions' },
-    { icon: Users, label: 'Student Records', path: '/students' },
-    { icon: FileText, label: 'Transcripts', path: '/transcripts' },
-    { icon: ScrollText, label: 'Certificates', path: '/certificates' },
-    { icon: Landmark, label: 'Degree Audit', path: '/degree-audit' },
-    { icon: BarChart3, label: 'Reports', path: '/reports' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <GraduationCap size={20} />, label: 'Admissions', path: '/admissions' },
+    { icon: <Users size={20} />, label: 'Student Records', path: '/students' },
+    { icon: <FileText size={20} />, label: 'Transcripts', path: '/transcripts' },
+    { icon: <ScrollText size={20} />, label: 'Certificates', path: '/certificates' },
+    { icon: <Landmark size={20} />, label: 'Degree Audit', path: '/degree-audit' },
+    { icon: <BarChart3 size={20} />, label: 'Reports', path: '/reports' },
   ],
   treasurer: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: CreditCard, label: 'Fee Management', path: '/fees' },
-    { icon: Briefcase, label: 'Scholarships', path: '/scholarships' },
-    { icon: BarChart3, label: 'Financial Reports', path: '/finance-reports' },
-    { icon: ScrollText, label: 'Budget', path: '/budget' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <CreditCard size={20} />, label: 'Fee Management', path: '/fees' },
+    { icon: <Briefcase size={20} />, label: 'Scholarships', path: '/scholarships' },
+    { icon: <BarChart3 size={20} />, label: 'Financial Reports', path: '/finance-reports' },
+    { icon: <ScrollText size={20} />, label: 'Budget', path: '/budget' },
   ],
   clerk: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-    { icon: FileText, label: 'Document Queue', path: '/documents' },
-    { icon: ScrollText, label: 'Transcripts', path: '/transcripts' },
-    { icon: Users, label: 'Student Inquiry', path: '/inquiries' },
-    { icon: Calendar, label: 'Appointments', path: '/appointments' },
+    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/dashboard' },
+    { icon: <FileText size={20} />, label: 'Document Queue', path: '/documents' },
+    { icon: <ScrollText size={20} />, label: 'Transcripts', path: '/transcripts' },
+    { icon: <Users size={20} />, label: 'Student Inquiry', path: '/inquiries' },
+    { icon: <Calendar size={20} />, label: 'Appointments', path: '/appointments' },
   ],
 }
 
 export default function DashboardLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
+  const { theme, toggleTheme } = useTheme()
+  const navigate = useNavigate()
 
   const menuItems = MENU_BY_ROLE[user?.role] || MENU_BY_ROLE.student
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
+
+  // Build user object in the format Sidebar/Topbar expect
+  const userForComponents = {
+    name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User',
+    role: user?.role?.replace(/^\w/, c => c.toUpperCase()) || 'Student',
+    avatar: user?.avatar || null,
+    email: user?.email || '',
+  }
 
   return (
     <div className={`dashboard-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <Sidebar
         menuItems={menuItems}
         collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         mobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
-        user={user}
+        user={userForComponents}
+        roleBadge={userForComponents.role}
       />
-      
+
       <div className="dashboard-main">
         <Topbar
           onMenuClick={() => setMobileMenuOpen(true)}
-          user={user}
+          user={userForComponents}
+          theme={theme}
+          onThemeToggle={toggleTheme}
+          onLogout={handleLogout}
+          notificationCount={5}
         />
         <main className="dashboard-content">
           <Outlet />
         </main>
       </div>
-
-      {/* Mobile overlay */}
-      {mobileMenuOpen && (
-        <div 
-          className="mobile-overlay" 
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
     </div>
   )
 }

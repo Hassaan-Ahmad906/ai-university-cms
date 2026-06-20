@@ -22,13 +22,49 @@ function createMockUser(email, role) {
     admin: {
       firstName: 'Muhammad',
       lastName: 'Ali',
-      department: 'Administration',
+      department: 'IT Administration',
       avatar: null,
     },
     hod: {
       firstName: 'Prof. Fatima',
       lastName: 'Zahra',
       department: 'Computer Science',
+      avatar: null,
+    },
+    vc: {
+      firstName: 'Prof. Dr. Khalid',
+      lastName: 'Mahmood',
+      department: 'Vice Chancellor Office',
+      avatar: null,
+    },
+    dean: {
+      firstName: 'Dr. Usman',
+      lastName: 'Tariq',
+      department: 'Faculty of Computing',
+      avatar: null,
+    },
+    registrar: {
+      firstName: 'Dr. Amina',
+      lastName: 'Bibi',
+      department: 'Registrar Office',
+      avatar: null,
+    },
+    treasurer: {
+      firstName: 'Mr. Faisal',
+      lastName: 'Shahzad',
+      department: 'Treasury',
+      avatar: null,
+    },
+    clerk: {
+      firstName: 'Ayesha',
+      lastName: 'Siddiqui',
+      department: 'Administration',
+      avatar: null,
+    },
+    controller: {
+      firstName: 'Dr. Nasir',
+      lastName: 'Hussain',
+      department: 'Controller of Examinations',
       avatar: null,
     },
   }

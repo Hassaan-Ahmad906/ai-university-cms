@@ -369,4 +369,21 @@
   --opacity-placeholder: 0.4;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
+
+  /* ── Shorthand Aliases (for components using shorter names) ── */
+  --bg-primary: var(--color-bg-primary);
+  --bg-secondary: var(--color-bg-secondary);
+  --bg-tertiary: var(--color-bg-tertiary);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --text-tertiary: var(--color-text-tertiary);
+  --border-default: var(--color-border);
+  --border-strong: var(--color-border-strong);
+  --border-subtle: var(--color-border-light);
+  --color-accent-light: var(--color-accent-hover);
+  --color-primary-dark: var(--color-navy-dark);
+  --font-primary: var(--font-family-sans);
+  --font-heading: var(--font-family-display);
+  --font-mono: var(--font-family-mono);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }

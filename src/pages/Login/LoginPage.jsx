@@ -37,8 +37,7 @@ export default function LoginPage() {
     setIsLoading(true)
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1200))
-      login(email || 'demo@pu.edu.pk', password || 'demo123', selectedRole)
+      await login(email || 'demo@pu.edu.pk', password || 'demo123', selectedRole)
       navigate('/dashboard')
     } catch (err) {
       setError('Invalid credentials. Please try again.')
