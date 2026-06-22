@@ -1,0 +1,653 @@
+/* ============================================================
+   Attendance Page — Teacher View
+   ============================================================ */
+
+/* ── Animations ── */
+@keyframes attend-fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes attend-scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes attend-slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes attend-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+@keyframes attend-ringFill {
+  from { stroke-dasharray: 0, 100; }
+}
+
+@keyframes attend-savePulse {
+  0%, 100% { box-shadow: var(--shadow-md), 0 0 20px rgba(201, 169, 110, 0.2); }
+  50%      { box-shadow: var(--shadow-lg), 0 0 35px rgba(201, 169, 110, 0.35); }
+}
+
+/* ── Page ── */
+.attend-page {
+  padding: var(--space-8);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  animation: attend-fadeUp 0.5s var(--ease-out) both;
+}
+
+/* ── Header ── */
+.attend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  animation: attend-fadeUp 0.5s var(--ease-out) both;
+}
+
+.attend-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.attend-header__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.25);
+}
+
+.attend-header__title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  letter-spacing: var(--tracking-tight);
+}
+
+.attend-header__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+.attend-header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.attend-date-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2-5) var(--space-4);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.attend-date-display svg {
+  color: var(--color-accent);
+}
+
+.attend-date-display__badge {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-xs);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.attend-select-wrapper {
+  position: relative;
+}
+
+.attend-select {
+  appearance: none;
+  padding: var(--space-2-5) var(--space-10) var(--space-2-5) var(--space-4);
+  background: var(--color-bg-input);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-family-sans);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  outline: none;
+  min-width: 240px;
+}
+
+.attend-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-subtle);
+}
+
+.attend-select__chevron {
+  position: absolute;
+  right: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+/* ── Stats ── */
+.attend-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.attend-stat-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  transition: all var(--transition-moderate);
+  animation: attend-scaleIn 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * 80ms + 100ms);
+  overflow: hidden;
+}
+
+.attend-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--stat-color) 30%, transparent);
+  box-shadow: var(--shadow-lg);
+}
+
+.attend-stat-card__icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--stat-color) 15%, transparent);
+  color: var(--stat-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.attend-stat-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.attend-stat-card__value {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  line-height: var(--leading-tight);
+}
+
+.attend-stat-card__label {
+  font-size: var(--text-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.attend-stat-card__ring {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.attend-stat-card__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.attend-stat-card__ring-bg {
+  fill: none;
+  stroke: var(--color-bg-tertiary);
+  stroke-width: 3;
+}
+
+.attend-stat-card__ring-fill {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  animation: attend-ringFill 1.2s var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * 100ms + 300ms);
+}
+
+/* ── Calendar ── */
+.attend-calendar {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  animation: attend-fadeUp 0.5s var(--ease-out) 0.35s both;
+}
+
+.attend-calendar__title {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.attend-calendar__title svg {
+  color: var(--color-accent);
+}
+
+.attend-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-3);
+}
+
+.attend-cal-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-tertiary);
+  border: 1px solid transparent;
+  transition: all var(--transition-moderate);
+  animation: attend-scaleIn 0.4s var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * 60ms + 450ms);
+}
+
+.attend-cal-day:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.attend-cal-day__name {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+}
+
+.attend-cal-day__date {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+.attend-cal-day__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.attend-cal-day__label {
+  font-size: var(--text-2xs);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+/* Calendar day statuses */
+.attend-cal-day--taken .attend-cal-day__dot {
+  background: var(--color-success);
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+.attend-cal-day--taken {
+  border-color: rgba(76, 175, 80, 0.15);
+}
+
+.attend-cal-day--holiday .attend-cal-day__dot {
+  background: var(--color-error-light);
+  box-shadow: 0 0 8px rgba(239, 83, 80, 0.4);
+}
+
+.attend-cal-day--holiday {
+  border-color: rgba(239, 83, 80, 0.15);
+  background: var(--color-error-subtle);
+}
+
+.attend-cal-day--today {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+  box-shadow: var(--shadow-glow-accent);
+}
+
+.attend-cal-day--today .attend-cal-day__dot {
+  background: var(--color-accent);
+  box-shadow: 0 0 10px rgba(201, 169, 110, 0.5);
+  animation: attend-pop 2s ease-in-out infinite;
+}
+
+.attend-cal-day--today .attend-cal-day__date {
+  color: var(--color-accent);
+}
+
+.attend-cal-day--upcoming .attend-cal-day__dot {
+  background: var(--color-text-muted);
+}
+
+.attend-cal-day--upcoming {
+  opacity: 0.6;
+}
+
+/* ── Student List ── */
+.attend-student-list {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  animation: attend-fadeUp 0.5s var(--ease-out) 0.5s both;
+}
+
+.attend-student-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.attend-student-list__title {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.attend-student-list__title svg {
+  color: var(--color-accent);
+}
+
+.attend-student-list__count {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+}
+
+.attend-students {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.attend-student {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3-5) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-tertiary);
+  border: 1px solid transparent;
+  transition: all var(--transition-moderate);
+  animation: attend-slideIn 0.4s var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * 50ms + 600ms);
+}
+
+.attend-student:hover {
+  border-color: var(--color-border-strong);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sm);
+}
+
+.attend-student__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.attend-student__avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: #fff;
+  flex-shrink: 0;
+  transition: all var(--transition-moderate);
+}
+
+.attend-student__avatar--present {
+  background: linear-gradient(135deg, #4caf50, #2e7d32);
+}
+
+.attend-student__avatar--absent {
+  background: linear-gradient(135deg, #ef5350, #c62828);
+}
+
+.attend-student__avatar--late {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.attend-student__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.attend-student__name {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+}
+
+.attend-student__roll {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-family-mono);
+}
+
+/* ── Pill Buttons ── */
+.attend-student__pills {
+  display: flex;
+  gap: var(--space-1-5);
+}
+
+.attend-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1-5) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+  font-family: var(--font-family-sans);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.attend-pill:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text-secondary);
+}
+
+/* Active states */
+.attend-pill--present.attend-pill--active {
+  background: var(--color-success);
+  color: #fff;
+  border-color: var(--color-success);
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.3);
+}
+
+.attend-pill--absent.attend-pill--active {
+  background: var(--color-error-light);
+  color: #fff;
+  border-color: var(--color-error-light);
+  box-shadow: 0 0 12px rgba(239, 83, 80, 0.3);
+}
+
+.attend-pill--late.attend-pill--active {
+  background: var(--color-warning);
+  color: #fff;
+  border-color: var(--color-warning);
+  box-shadow: 0 0 12px rgba(255, 152, 0, 0.3);
+}
+
+/* ── Summary Bar ── */
+.attend-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  margin-top: var(--space-5);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
+}
+
+.attend-summary__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.attend-summary__item strong {
+  font-weight: var(--font-bold);
+}
+
+.attend-summary__item--present svg { color: var(--color-success); }
+.attend-summary__item--present strong { color: var(--color-success); }
+
+.attend-summary__item--absent svg { color: var(--color-error-light); }
+.attend-summary__item--absent strong { color: var(--color-error-light); }
+
+.attend-summary__item--late svg { color: var(--color-warning); }
+.attend-summary__item--late strong { color: var(--color-warning); }
+
+/* ── Save Button ── */
+.attend-save-section {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-6);
+}
+
+.attend-save-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3-5) var(--space-8);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  font-family: var(--font-family-sans);
+  cursor: pointer;
+  transition: all var(--transition-moderate);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(201, 169, 110, 0.2);
+}
+
+.attend-save-btn:hover {
+  transform: translateY(-2px);
+  animation: attend-savePulse 2s ease-in-out infinite;
+}
+
+.attend-save-btn:active {
+  transform: translateY(0);
+  animation: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .attend-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .attend-calendar__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .attend-page {
+    padding: var(--space-4);
+  }
+
+  .attend-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .attend-header__right {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .attend-select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .attend-calendar__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .attend-student {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .attend-student__pills {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .attend-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .attend-save-section {
+    justify-content: stretch;
+  }
+
+  .attend-save-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

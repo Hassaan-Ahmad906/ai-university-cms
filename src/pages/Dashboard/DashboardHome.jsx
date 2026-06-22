@@ -4,7 +4,8 @@ import {
   BookOpen, ClipboardList, CalendarClock, BarChart3, Users,
   GraduationCap, CreditCard, Brain, Shield, Settings,
   FileText, UserPlus, Send, Clock, AlertCircle, CheckCircle2,
-  Activity, Server, Database, Zap, Building2, User
+  Activity, Server, Database, Zap, Building2, User,
+  Award, Calendar, ScrollText
 } from 'lucide-react'
 import './DashboardHome.css'
 
@@ -334,27 +335,657 @@ function AdminDashboard({ user }) {
 }
 
 /* ============================================================
-   PLACEHOLDER FOR OTHER ROLES
+   TEACHER DASHBOARD
    ============================================================ */
-function RolePlaceholder({ role }) {
-  const roleNames = {
-    vc: 'Vice Chancellor',
-    dean: 'Dean',
-    hod: 'Head of Department',
-    registrar: 'Registrar',
-    treasurer: 'Treasurer',
-    clerk: 'Clerk',
-    controller: 'Controller of Examinations',
-  }
+function TeacherDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Active Courses', value: '4', icon: BookOpen, color: '#5c6bc0' },
+    { label: 'Total Students', value: '186', icon: Users, color: '#06b6d4' },
+    { label: 'Pending Grading', value: '23', icon: ClipboardList, trend: '8 urgent', trendUp: false, color: '#ef5350' },
+    { label: 'Avg. Attendance', value: '84%', icon: CalendarClock, trend: '+3%', trendUp: true, color: '#4caf50' },
+  ]
+
+  const todayClasses = [
+    { time: '10:00 AM', course: 'CS-301 Data Structures', room: 'Room 204', students: 45 },
+    { time: '12:00 PM', course: 'CS-401 Artificial Intelligence', room: 'Lab 3', students: 38 },
+    { time: '3:00 PM', course: 'CS-205 OOP', room: 'Room 112', students: 52 },
+  ]
+
+  const recentSubmissions = [
+    { student: 'Ahmed Khan', assignment: 'DS Assignment #5', course: 'CS-301', time: '10 min ago' },
+    { student: 'Fatima Ali', assignment: 'AI Project Proposal', course: 'CS-401', time: '25 min ago' },
+    { student: 'Usman Raza', assignment: 'DS Assignment #5', course: 'CS-301', time: '1 hour ago' },
+    { student: 'Sara Malik', assignment: 'OOP Lab Report', course: 'CS-205', time: '2 hours ago' },
+  ]
 
   return (
     <div className="dash-home">
-      <div className="dash-placeholder">
-        <div className="dash-placeholder__icon"><Shield size={40} /></div>
-        <h2 className="dash-placeholder__title">{roleNames[role] || role} Dashboard</h2>
-        <p className="dash-placeholder__subtitle">
-          This dashboard is currently being built. All features for the {roleNames[role] || role} role will be available soon.
-        </p>
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>{user?.firstName || 'Professor'}</span></h1>
+          <p className="dash-welcome__summary">You have 3 classes today and 23 submissions to review</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--4">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+                {stat.trend && (
+                  <span className={`dash-stat-card__trend ${stat.trendUp ? 'up' : 'down'}`}>
+                    {stat.trendUp ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                    {stat.trend}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-two-col">
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Clock size={20} /> Today's Classes</h3>
+          </div>
+          <div className="dash-deadlines">
+            {todayClasses.map((cls, i) => (
+              <div key={i} className="dash-deadline-item">
+                <div className="dash-deadline-item__icon dash-deadline-item__icon--normal">
+                  <BookOpen size={18} />
+                </div>
+                <div className="dash-deadline-item__info">
+                  <div className="dash-deadline-item__title">{cls.course}</div>
+                  <div className="dash-deadline-item__meta">{cls.time} • {cls.room} • {cls.students} students</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><FileText size={20} /> Recent Submissions</h3>
+            <span className="dash-card__badge dash-card__badge--count">4</span>
+          </div>
+          <div className="dash-deadlines">
+            {recentSubmissions.map((sub, i) => (
+              <div key={i} className="dash-deadline-item">
+                <div className="dash-deadline-item__icon dash-deadline-item__icon--warning">
+                  <ClipboardList size={18} />
+                </div>
+                <div className="dash-deadline-item__info">
+                  <div className="dash-deadline-item__title">{sub.student}</div>
+                  <div className="dash-deadline-item__meta">{sub.assignment} • {sub.course} • {sub.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="dash-card" style={{ marginBottom: 'var(--space-6)' }}>
+        <div className="dash-card__header">
+          <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
+        </div>
+        <div className="dash-quick-actions">
+          {[
+            { icon: ClipboardList, label: 'Create Assignment' },
+            { icon: FileText, label: 'Grade Submissions' },
+            { icon: CalendarClock, label: 'Mark Attendance' },
+            { icon: Brain, label: 'AI Auto-Grade' },
+          ].map((action, i) => {
+            const Icon = action.icon
+            return (
+              <button key={i} className="dash-quick-action-btn">
+                <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
+                <span className="dash-quick-action-btn__label">{action.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   HOD DASHBOARD
+   ============================================================ */
+function HodDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Faculty Members', value: '28', icon: Users, color: '#8b5cf6' },
+    { label: 'Active Courses', value: '42', icon: BookOpen, color: '#5c6bc0' },
+    { label: 'Students', value: '680', icon: GraduationCap, color: '#06b6d4' },
+    { label: 'Avg. Result', value: '74%', icon: BarChart3, trend: '+2.3%', trendUp: true, color: '#4caf50' },
+  ]
+
+  const facultyPerformance = [
+    { name: 'Dr. Sarah Malik', courses: 3, rating: 92, color: 'navy' },
+    { name: 'Prof. Hassan Raza', courses: 4, rating: 88, color: 'gold' },
+    { name: 'Dr. Fatima Ali', courses: 2, rating: 95, color: 'info' },
+    { name: 'Dr. Ahmad Khan', courses: 3, rating: 85, color: 'success' },
+  ]
+
+  return (
+    <div className="dash-home">
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>{user?.firstName || 'HOD'}</span></h1>
+          <p className="dash-welcome__summary">Department of {user?.department || 'Computer Science'} — Overview</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--4">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+                {stat.trend && (
+                  <span className={`dash-stat-card__trend ${stat.trendUp ? 'up' : 'down'}`}>
+                    <TrendingUp size={12} /> {stat.trend}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-two-col">
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Users size={20} /> Faculty Performance</h3>
+          </div>
+          <div className="dash-bar-chart">
+            {facultyPerformance.map((f, i) => (
+              <div key={i} className="dash-bar-row">
+                <span className="dash-bar-row__label">{f.name}</span>
+                <div className="dash-bar-row__track">
+                  <div className={`dash-bar-row__fill dash-bar-row__fill--${f.color}`} style={{ width: `${f.rating}%`, animationDelay: `${i * 0.15}s` }}>
+                    {f.rating}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
+          </div>
+          <div className="dash-quick-actions">
+            {[
+              { icon: Users, label: 'Assign Courses' },
+              { icon: Calendar, label: 'Manage Timetable' },
+              { icon: BarChart3, label: 'View Reports' },
+              { icon: Brain, label: 'AI Workload' },
+            ].map((action, i) => {
+              const Icon = action.icon
+              return (
+                <button key={i} className="dash-quick-action-btn">
+                  <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
+                  <span className="dash-quick-action-btn__label">{action.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   VC DASHBOARD
+   ============================================================ */
+function VcDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Total Enrollment', value: '24,800', icon: GraduationCap, color: '#06b6d4' },
+    { label: 'Faculties', value: '12', icon: Building2, color: '#8b5cf6' },
+    { label: 'Annual Budget', value: '₨ 4.2B', icon: CreditCard, color: '#c9a96e' },
+    { label: 'Research Papers', value: '342', icon: FileText, trend: '+18%', trendUp: true, color: '#10b981' },
+    { label: 'Global Ranking', value: '#287', icon: Award, trend: '+12', trendUp: true, color: '#f59e0b' },
+    { label: 'Faculty Count', value: '1,240', icon: Users, color: '#5c6bc0' },
+  ]
+
+  const pendingApprovals = [
+    { title: 'New BS Data Science Program', from: 'Faculty of Computing', priority: 'urgent' },
+    { title: 'Budget Reallocation — Library', from: 'Treasurer Office', priority: 'normal' },
+    { title: 'Faculty Recruitment — Physics', from: 'Dean of Sciences', priority: 'normal' },
+    { title: 'International Collaboration — MIT', from: 'Research Office', priority: 'urgent' },
+  ]
+
+  return (
+    <div className="dash-home">
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>Vice Chancellor</span></h1>
+          <p className="dash-welcome__summary">University of the Punjab — Executive Dashboard</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--6">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+                {stat.trend && (
+                  <span className={`dash-stat-card__trend ${stat.trendUp ? 'up' : 'down'}`}>
+                    <TrendingUp size={12} /> {stat.trend}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-two-col">
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><AlertCircle size={20} /> Pending Approvals</h3>
+            <span className="dash-card__badge dash-card__badge--count">{pendingApprovals.length}</span>
+          </div>
+          <div className="dash-deadlines">
+            {pendingApprovals.map((item, i) => (
+              <div key={i} className="dash-deadline-item">
+                <div className={`dash-deadline-item__icon dash-deadline-item__icon--${item.priority === 'urgent' ? 'urgent' : 'normal'}`}>
+                  <FileText size={18} />
+                </div>
+                <div className="dash-deadline-item__info">
+                  <div className="dash-deadline-item__title">{item.title}</div>
+                  <div className="dash-deadline-item__meta">From: {item.from}</div>
+                </div>
+                <span className={`dash-deadline-item__status dash-deadline-item__status--${item.priority === 'urgent' ? 'overdue' : 'upcoming'}`}>
+                  {item.priority === 'urgent' ? 'Urgent' : 'Review'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><BarChart3 size={20} /> Faculty Performance</h3>
+          </div>
+          <div className="dash-bar-chart">
+            {[
+              { name: 'Computing', value: 94, color: 'navy' },
+              { name: 'Sciences', value: 87, color: 'gold' },
+              { name: 'Arts', value: 82, color: 'info' },
+              { name: 'Engineering', value: 91, color: 'success' },
+              { name: 'Medicine', value: 89, color: 'crimson' },
+            ].map((dept, i) => (
+              <div key={i} className="dash-bar-row">
+                <span className="dash-bar-row__label">{dept.name}</span>
+                <div className="dash-bar-row__track">
+                  <div className={`dash-bar-row__fill dash-bar-row__fill--${dept.color}`} style={{ width: `${dept.value}%`, animationDelay: `${i * 0.15}s` }}>
+                    {dept.value}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   DEAN DASHBOARD
+   ============================================================ */
+function DeanDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Departments', value: '8', icon: Building2, color: '#8b5cf6' },
+    { label: 'Faculty Members', value: '156', icon: Users, color: '#5c6bc0' },
+    { label: 'Programs', value: '22', icon: Award, color: '#c9a96e' },
+    { label: 'Student Satisfaction', value: '88%', icon: TrendingUp, trend: '+4%', trendUp: true, color: '#4caf50' },
+  ]
+
+  return (
+    <div className="dash-home">
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>Dean</span></h1>
+          <p className="dash-welcome__summary">{user?.department || 'Faculty of Computing'} — Overview</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--4">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+                {stat.trend && (
+                  <span className={`dash-stat-card__trend up`}><TrendingUp size={12} /> {stat.trend}</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-two-col">
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><BarChart3 size={20} /> Department Results</h3>
+          </div>
+          <div className="dash-bar-chart">
+            {[
+              { name: 'Computer Science', value: 88, color: 'navy' },
+              { name: 'Software Eng.', value: 82, color: 'gold' },
+              { name: 'Data Science', value: 91, color: 'info' },
+              { name: 'IT', value: 78, color: 'success' },
+              { name: 'Cyber Security', value: 85, color: 'crimson' },
+            ].map((dept, i) => (
+              <div key={i} className="dash-bar-row">
+                <span className="dash-bar-row__label">{dept.name}</span>
+                <div className="dash-bar-row__track">
+                  <div className={`dash-bar-row__fill dash-bar-row__fill--${dept.color}`} style={{ width: `${dept.value}%`, animationDelay: `${i * 0.12}s` }}>
+                    {dept.value}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
+          </div>
+          <div className="dash-quick-actions">
+            {[
+              { icon: Users, label: 'Review Faculty' },
+              { icon: Award, label: 'Programs' },
+              { icon: BarChart3, label: 'Reports' },
+              { icon: Brain, label: 'AI Analytics' },
+            ].map((action, i) => {
+              const Icon = action.icon
+              return (
+                <button key={i} className="dash-quick-action-btn">
+                  <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
+                  <span className="dash-quick-action-btn__label">{action.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   REGISTRAR DASHBOARD
+   ============================================================ */
+function RegistrarDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Admission Applications', value: '2,340', icon: FileText, color: '#5c6bc0' },
+    { label: 'Transcript Requests', value: '87', icon: ScrollText, trend: '12 pending', trendUp: false, color: '#ef5350' },
+    { label: 'Active Students', value: '24,800', icon: GraduationCap, color: '#06b6d4' },
+    { label: 'Degrees Issued (Year)', value: '3,420', icon: Award, color: '#c9a96e' },
+  ]
+
+  const recentRequests = [
+    { type: 'Transcript', student: 'Ahmed Khan (CS-2022-045)', status: 'Processing', time: '30 min ago' },
+    { type: 'Degree Verification', student: 'Sara Malik (EE-2019-112)', status: 'Ready', time: '1 hour ago' },
+    { type: 'Migration Certificate', student: 'Usman Ali (BBA-2021-089)', status: 'Pending', time: '2 hours ago' },
+    { type: 'Enrollment Letter', student: 'Fatima Zahra (CS-2023-067)', status: 'Completed', time: '3 hours ago' },
+  ]
+
+  return (
+    <div className="dash-home">
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>Registrar</span></h1>
+          <p className="dash-welcome__summary">Office of the Registrar — Document Management</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--4">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+                {stat.trend && (
+                  <span className="dash-stat-card__trend down"><TrendingDown size={12} /> {stat.trend}</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-card" style={{ marginBottom: 'var(--space-6)' }}>
+        <div className="dash-card__header">
+          <h3 className="dash-card__title"><Activity size={20} /> Recent Requests</h3>
+        </div>
+        <div className="dash-deadlines">
+          {recentRequests.map((req, i) => (
+            <div key={i} className="dash-deadline-item">
+              <div className={`dash-deadline-item__icon dash-deadline-item__icon--${req.status === 'Ready' ? 'done' : req.status === 'Processing' ? 'warning' : 'normal'}`}>
+                <FileText size={18} />
+              </div>
+              <div className="dash-deadline-item__info">
+                <div className="dash-deadline-item__title">{req.type}</div>
+                <div className="dash-deadline-item__meta">{req.student} • {req.time}</div>
+              </div>
+              <span className={`dash-deadline-item__status dash-deadline-item__status--${req.status === 'Ready' ? 'submitted' : req.status === 'Processing' ? 'due-soon' : req.status === 'Completed' ? 'submitted' : 'upcoming'}`}>
+                {req.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   TREASURER DASHBOARD
+   ============================================================ */
+function TreasurerDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Collections (Month)', value: '₨ 45.2M', icon: CreditCard, color: '#c9a96e' },
+    { label: 'Pending Dues', value: '₨ 8.7M', icon: AlertCircle, color: '#ef5350' },
+    { label: 'Scholarships Active', value: '1,240', icon: Award, color: '#10b981' },
+    { label: 'Default Rate', value: '3.2%', icon: TrendingDown, trend: '-0.8%', trendUp: true, color: '#4caf50' },
+  ]
+
+  return (
+    <div className="dash-home">
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>Treasurer</span></h1>
+          <p className="dash-welcome__summary">Treasury Department — Financial Overview</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--4">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+                {stat.trend && (
+                  <span className="dash-stat-card__trend up"><TrendingUp size={12} /> {stat.trend}</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-two-col">
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><BarChart3 size={20} /> Revenue by Faculty</h3>
+          </div>
+          <div className="dash-bar-chart">
+            {[
+              { name: 'Computing', value: 95, color: 'navy' },
+              { name: 'Engineering', value: 88, color: 'gold' },
+              { name: 'Medicine', value: 82, color: 'crimson' },
+              { name: 'Business', value: 76, color: 'info' },
+              { name: 'Arts', value: 61, color: 'success' },
+            ].map((dept, i) => (
+              <div key={i} className="dash-bar-row">
+                <span className="dash-bar-row__label">{dept.name}</span>
+                <div className="dash-bar-row__track">
+                  <div className={`dash-bar-row__fill dash-bar-row__fill--${dept.color}`} style={{ width: `${dept.value}%`, animationDelay: `${i * 0.15}s` }}>
+                    {dept.value}%
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
+          </div>
+          <div className="dash-quick-actions">
+            {[
+              { icon: CreditCard, label: 'Fee Structure' },
+              { icon: Award, label: 'Scholarships' },
+              { icon: BarChart3, label: 'Financial Report' },
+              { icon: FileText, label: 'Budget Plan' },
+            ].map((action, i) => {
+              const Icon = action.icon
+              return (
+                <button key={i} className="dash-quick-action-btn">
+                  <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
+                  <span className="dash-quick-action-btn__label">{action.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ============================================================
+   CLERK DASHBOARD
+   ============================================================ */
+function ClerkDashboard({ user }) {
+  const greeting = getGreeting()
+  const GreetIcon = greeting.icon
+
+  const stats = [
+    { label: 'Pending Documents', value: '14', icon: FileText, color: '#ef5350' },
+    { label: 'Processed Today', value: '23', icon: CheckCircle2, color: '#4caf50' },
+    { label: 'Student Inquiries', value: '8', icon: Users, color: '#06b6d4' },
+    { label: 'Appointments Today', value: '5', icon: CalendarClock, color: '#c9a96e' },
+  ]
+
+  const documentQueue = [
+    { type: 'Transcript Request', student: 'Ahmed Khan', submitted: '9:15 AM', priority: 'High' },
+    { type: 'Enrollment Verification', student: 'Sara Malik', submitted: '10:30 AM', priority: 'Normal' },
+    { type: 'Fee Receipt Copy', student: 'Ali Raza', submitted: '11:00 AM', priority: 'Low' },
+    { type: 'Migration Certificate', student: 'Fatima Ali', submitted: '1:45 PM', priority: 'High' },
+  ]
+
+  return (
+    <div className="dash-home">
+      <div className="dash-welcome">
+        <div className="dash-welcome__content">
+          <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
+          <h1 className="dash-welcome__name">Welcome, <span>{user?.firstName || 'Staff'}</span></h1>
+          <p className="dash-welcome__summary">Administrative Support — Document Processing</p>
+        </div>
+      </div>
+
+      <div className="dash-stats-grid dash-stats-grid--4">
+        {stats.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <div key={i} className="dash-stat-card" style={{ '--stat-accent': stat.color }}>
+              <div className="dash-stat-card__icon"><Icon size={22} /></div>
+              <div className="dash-stat-card__info">
+                <span className="dash-stat-card__label">{stat.label}</span>
+                <span className="dash-stat-card__value">{stat.value}</span>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="dash-card">
+        <div className="dash-card__header">
+          <h3 className="dash-card__title"><FileText size={20} /> Document Queue</h3>
+          <span className="dash-card__badge dash-card__badge--count">{documentQueue.length}</span>
+        </div>
+        <div className="dash-deadlines">
+          {documentQueue.map((doc, i) => (
+            <div key={i} className="dash-deadline-item">
+              <div className={`dash-deadline-item__icon dash-deadline-item__icon--${doc.priority === 'High' ? 'urgent' : doc.priority === 'Normal' ? 'warning' : 'normal'}`}>
+                <FileText size={18} />
+              </div>
+              <div className="dash-deadline-item__info">
+                <div className="dash-deadline-item__title">{doc.type}</div>
+                <div className="dash-deadline-item__meta">{doc.student} • Submitted: {doc.submitted}</div>
+              </div>
+              <span className={`dash-deadline-item__status dash-deadline-item__status--${doc.priority === 'High' ? 'overdue' : doc.priority === 'Normal' ? 'due-soon' : 'upcoming'}`}>
+                {doc.priority}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -372,7 +1003,36 @@ export default function DashboardHome() {
       return <StudentDashboard user={user} />
     case 'admin':
       return <AdminDashboard user={user} />
+    case 'teacher':
+      return <TeacherDashboard user={user} />
+    case 'hod':
+      return <HodDashboard user={user} />
+    case 'vc':
+      return <VcDashboard user={user} />
+    case 'dean':
+      return <DeanDashboard user={user} />
+    case 'registrar':
+      return <RegistrarDashboard user={user} />
+    case 'treasurer':
+      return <TreasurerDashboard user={user} />
+    case 'clerk':
+      return <ClerkDashboard user={user} />
     default:
       return <RolePlaceholder role={role} />
   }
 }
+
+function RolePlaceholder({ role }) {
+  return (
+    <div className="dash-home">
+      <div className="dash-placeholder">
+        <div className="dash-placeholder__icon"><Shield size={40} /></div>
+        <h2 className="dash-placeholder__title">{role} Dashboard</h2>
+        <p className="dash-placeholder__subtitle">
+          This dashboard is under construction.
+        </p>
+      </div>
+    </div>
+  )
+}
+

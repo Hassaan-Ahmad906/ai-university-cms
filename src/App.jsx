@@ -7,6 +7,9 @@ import DashboardHome from './pages/Dashboard/DashboardHome'
 import CoursesPage from './pages/Courses/CoursesPage'
 import UsersPage from './pages/Users/UsersPage'
 import ProfilePage from './pages/Profile/ProfilePage'
+import AssignmentsPage from './pages/Assignments/AssignmentsPage'
+import GradebookPage from './pages/Gradebook/GradebookPage'
+import AttendancePage from './pages/Attendance/AttendancePage'
 import NotFoundPage from './pages/NotFound/NotFoundPage'
 
 function ProtectedRoute({ children }) {
@@ -56,6 +59,9 @@ function AppRoutes() {
         <Route path="courses" element={<CoursesPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="assignments" element={<AssignmentsPage />} />
+        <Route path="gradebook" element={<GradebookPage />} />
+        <Route path="attendance" element={<AttendancePage />} />
       </Route>
 
       <Route path="*" element={<NotFoundPage />} />

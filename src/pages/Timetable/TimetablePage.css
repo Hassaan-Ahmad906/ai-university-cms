@@ -1,0 +1,503 @@
+/* ============================================================
+   Punjab University LMS — Timetable Page
+   Prefix: .tt-
+   ============================================================ */
+
+/* ── Page Layout ── */
+.tt-page {
+  padding: var(--space-8);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* ── Header ── */
+.tt-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  animation: tt-fadeDown 0.5s var(--ease-out) both;
+}
+
+.tt-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.tt-header__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.tt-header__title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+
+.tt-header__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+.tt-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tt-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.tt-nav-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.tt-nav-btn--today {
+  width: auto;
+  padding: 0 var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.tt-nav-btn--today:hover {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.tt-header__week {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+}
+
+/* ── Grid Wrapper ── */
+.tt-grid-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: tt-fadeUp 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--anim-order, 0) * 120ms);
+}
+
+.tt-grid-scroll {
+  overflow-x: auto;
+  padding: var(--space-1);
+}
+
+.tt-grid {
+  display: grid;
+  grid-template-columns: 90px repeat(5, 1fr);
+  min-width: 700px;
+}
+
+/* Corner */
+.tt-grid__corner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  border-bottom: 1px solid var(--color-divider);
+  border-right: 1px solid var(--color-divider);
+  background: var(--color-bg-tertiary);
+}
+
+/* Day headers */
+.tt-grid__day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-divider);
+  border-right: 1px solid var(--color-divider);
+  background: var(--color-bg-tertiary);
+  position: relative;
+  gap: var(--space-0-5);
+}
+
+.tt-grid__day-header:last-child {
+  border-right: none;
+}
+
+.tt-grid__day-header--today {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.tt-day-full {
+  display: block;
+}
+
+.tt-day-short {
+  display: none;
+}
+
+.tt-today-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  animation: tt-pulse 2s ease infinite;
+}
+
+/* Time column */
+.tt-grid__time {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-text-tertiary);
+  border-right: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+  height: 60px;
+  white-space: nowrap;
+}
+
+/* Grid cells */
+.tt-grid__cell {
+  position: relative;
+  border-right: 1px solid var(--color-divider);
+  border-bottom: 1px solid var(--color-divider);
+  height: 60px;
+  padding: var(--space-1);
+}
+
+.tt-grid__cell:nth-child(6n+1) {
+  border-right: none;
+}
+
+/* Class Block */
+.tt-class-block {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  height: var(--block-height, 52px);
+  background: var(--block-bg);
+  border-left: 3px solid var(--block-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1-5) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  z-index: var(--z-raised);
+  cursor: pointer;
+  transition: all var(--transition-moderate);
+  overflow: hidden;
+  animation: tt-blockFade 0.4s var(--ease-out) both;
+}
+
+.tt-class-block:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  z-index: var(--z-dropdown);
+}
+
+.tt-class-block:hover .tt-class-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.tt-class-code {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--block-text);
+  letter-spacing: var(--tracking-wide);
+}
+
+.tt-class-room,
+.tt-class-teacher {
+  font-size: 9px;
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tt-class-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: var(--color-bg-tooltip);
+  color: var(--color-text-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-dropdown);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--transition-fast);
+  z-index: var(--z-tooltip);
+  pointer-events: none;
+}
+
+.tt-class-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-bg-tooltip);
+}
+
+/* ── Today's Classes Section ── */
+.tt-today {
+  animation: tt-fadeUp 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--anim-order, 0) * 120ms);
+}
+
+.tt-today__title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5) 0;
+}
+
+.tt-today__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-4);
+}
+
+.tt-today__card {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-4);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-left: 4px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  transition: all var(--transition-moderate);
+  animation: tt-cardSlide 0.4s var(--ease-out) both;
+  animation-delay: var(--anim-delay, 0ms);
+}
+
+.tt-today__card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-left-color: var(--card-border);
+  background: var(--card-bg);
+}
+
+.tt-today__time-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 60px;
+}
+
+.tt-today__time-start,
+.tt-today__time-end {
+  font-size: var(--text-2xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  white-space: nowrap;
+}
+
+.tt-today__time-line {
+  flex: 1;
+  width: 2px;
+  background: var(--color-divider);
+  border-radius: var(--radius-full);
+  min-height: 16px;
+}
+
+.tt-today__info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.tt-today__code {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  letter-spacing: var(--tracking-wide);
+}
+
+.tt-today__name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.tt-today__meta {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-1);
+}
+
+.tt-today__meta span {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tt-today__duration {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  align-self: flex-start;
+  background: var(--color-bg-tertiary);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.tt-today__empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12);
+  color: var(--color-text-tertiary);
+}
+
+/* ── Animations ── */
+@keyframes tt-fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tt-fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes tt-blockFade {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tt-cardSlide {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes tt-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(1.5); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .tt-page {
+    padding: var(--space-4);
+    gap: var(--space-6);
+  }
+
+  .tt-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tt-day-full {
+    display: none;
+  }
+
+  .tt-day-short {
+    display: block;
+  }
+
+  .tt-grid {
+    min-width: 550px;
+  }
+
+  .tt-grid__time {
+    font-size: 9px;
+  }
+
+  .tt-today__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .tt-grid {
+    grid-template-columns: 60px repeat(5, 1fr);
+    min-width: 420px;
+  }
+
+  .tt-class-code {
+    font-size: 9px;
+  }
+
+  .tt-class-room,
+  .tt-class-teacher {
+    display: none;
+  }
+}

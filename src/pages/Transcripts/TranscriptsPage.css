@@ -1,0 +1,635 @@
+/* ============================================================
+   Punjab University LMS — Transcripts Page
+   Prefix: .transcript-
+   ============================================================ */
+
+/* ── Page Layout ── */
+.transcript-page {
+  padding: var(--space-8);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* ── Header ── */
+.transcript-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  animation: transcript-fadeDown 0.5s var(--ease-out) both;
+}
+
+.transcript-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.transcript-header__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--gradient-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: var(--shadow-glow-accent);
+}
+
+.transcript-header__title {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+  margin: 0;
+}
+
+.transcript-header__subtitle {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+.transcript-request-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  border: none;
+  background: var(--gradient-accent);
+  color: var(--color-text-on-accent);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--transition-moderate);
+  box-shadow: var(--shadow-sm), var(--shadow-glow-accent);
+}
+
+.transcript-request-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow-accent);
+  filter: brightness(1.1);
+}
+
+.transcript-request-btn:active {
+  transform: translateY(0);
+}
+
+/* ── Stats Cards ── */
+.transcript-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+.transcript-stat-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  transition: transform var(--transition-moderate), box-shadow var(--transition-moderate);
+  animation: transcript-fadeUp 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--anim-order, 0) * 100ms);
+}
+
+.transcript-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.transcript-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.transcript-stat-icon--primary {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.transcript-stat-icon--warning {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+
+.transcript-stat-icon--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.transcript-stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.transcript-stat-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  font-weight: var(--font-semibold);
+}
+
+.transcript-stat-value {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+}
+
+/* ── Requests Table ── */
+.transcript-table-wrapper {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: transcript-fadeUp 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--anim-order, 0) * 100ms);
+}
+
+.transcript-table-header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.transcript-table-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.transcript-table-scroll {
+  overflow-x: auto;
+}
+
+.transcript-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transcript-table thead th {
+  padding: var(--space-4) var(--space-6);
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  border-bottom: 1px solid var(--color-divider);
+  white-space: nowrap;
+}
+
+.transcript-table tbody tr {
+  transition: background var(--transition-fast);
+  animation: transcript-rowSlide 0.4s var(--ease-out) both;
+  animation-delay: var(--row-delay, 0ms);
+}
+
+.transcript-table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.transcript-table td {
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-divider);
+  white-space: nowrap;
+}
+
+.transcript-req-id {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-medium);
+}
+
+.transcript-doc-type {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-medium);
+}
+
+.transcript-date {
+  color: var(--color-text-secondary);
+}
+
+/* Status Pills */
+.transcript-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.transcript-status--processing {
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
+  border: 1px solid rgba(255, 152, 0, 0.25);
+}
+
+.transcript-status--ready {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+
+.transcript-status--collected {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-tertiary);
+  border: 1px solid var(--color-border);
+}
+
+/* Action Buttons */
+.transcript-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.transcript-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.transcript-action-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.transcript-action-btn--download {
+  color: var(--color-success);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.transcript-action-btn--download:hover {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+/* ── Academic Record Preview ── */
+.transcript-preview {
+  animation: transcript-fadeUp 0.5s var(--ease-out) both;
+  animation-delay: calc(var(--anim-order, 0) * 100ms);
+}
+
+.transcript-preview-heading {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-5) 0;
+}
+
+/* Document Card */
+.transcript-document {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur-md);
+  border: 2px solid var(--color-border-accent);
+  border-radius: var(--radius-xl);
+  padding: var(--space-8);
+  position: relative;
+  overflow: hidden;
+}
+
+/* University Header */
+.transcript-doc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.transcript-doc-logo,
+.transcript-doc-seal {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent-subtle);
+  border: 2px solid var(--color-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gold);
+  flex-shrink: 0;
+}
+
+.transcript-doc-uni {
+  text-align: center;
+  flex: 1;
+}
+
+.transcript-doc-uni-name {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-gold);
+  margin: 0;
+  letter-spacing: var(--tracking-wide);
+}
+
+.transcript-doc-uni-sub {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: var(--space-1) 0 0;
+}
+
+.transcript-doc-uni-tagline {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  margin: var(--space-0-5) 0 0;
+  font-style: italic;
+}
+
+/* Divider */
+.transcript-doc-divider {
+  text-align: center;
+  margin-bottom: var(--space-6);
+  position: relative;
+}
+
+.transcript-doc-divider::before,
+.transcript-doc-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: calc(50% - 100px);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-gold),
+    transparent
+  );
+}
+
+.transcript-doc-divider::before { left: 0; }
+.transcript-doc-divider::after  { right: 0; }
+
+.transcript-doc-divider span {
+  display: inline-block;
+  padding: var(--space-1) var(--space-4);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-gold);
+  letter-spacing: var(--tracking-widest);
+  border: 1px solid var(--color-border-accent);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-subtle);
+}
+
+/* Student Info Grid */
+.transcript-doc-student {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-divider);
+}
+
+.transcript-doc-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.transcript-doc-field svg {
+  color: var(--color-gold);
+  flex-shrink: 0;
+}
+
+.transcript-doc-field-label {
+  color: var(--color-text-tertiary);
+  min-width: 100px;
+  font-weight: var(--font-medium);
+}
+
+.transcript-doc-field-value {
+  color: var(--color-text-primary);
+  font-weight: var(--font-semibold);
+}
+
+/* Semester Table */
+.transcript-doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--space-6);
+}
+
+.transcript-doc-table thead th {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wider);
+  border-bottom: 2px solid var(--color-gold);
+}
+
+.transcript-doc-table tbody tr {
+  animation: transcript-rowSlide 0.4s var(--ease-out) both;
+  animation-delay: var(--row-delay, 0ms);
+}
+
+.transcript-doc-table tbody tr:hover {
+  background: var(--color-bg-hover);
+}
+
+.transcript-doc-table td {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.transcript-doc-center {
+  text-align: center;
+}
+
+.transcript-doc-gpa {
+  font-family: var(--font-mono);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+}
+
+.transcript-doc-table tfoot tr {
+  background: var(--color-bg-tertiary);
+}
+
+.transcript-doc-table tfoot td {
+  border-bottom: none;
+  padding: var(--space-4);
+}
+
+.transcript-doc-cgpa {
+  font-family: var(--font-mono);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-gold);
+  background: var(--color-accent-subtle);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-accent);
+}
+
+/* Document Actions */
+.transcript-doc-actions {
+  display: flex;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.transcript-doc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--transition-moderate);
+}
+
+.transcript-doc-btn--download {
+  background: var(--gradient-primary);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+.transcript-doc-btn--download:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), var(--shadow-glow-primary);
+}
+
+.transcript-doc-btn--request {
+  background: transparent;
+  border-color: var(--color-gold);
+  color: var(--color-gold);
+}
+
+.transcript-doc-btn--request:hover {
+  background: var(--color-accent-subtle);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-accent);
+}
+
+/* Watermark */
+.transcript-doc-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-35deg);
+  font-size: 5rem;
+  font-weight: var(--font-extrabold);
+  color: var(--color-text-muted);
+  opacity: 0.07;
+  pointer-events: none;
+  letter-spacing: var(--tracking-widest);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ── Animations ── */
+@keyframes transcript-fadeDown {
+  from { opacity: 0; transform: translateY(-16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes transcript-fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes transcript-rowSlide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .transcript-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .transcript-page {
+    padding: var(--space-4);
+    gap: var(--space-6);
+  }
+
+  .transcript-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .transcript-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .transcript-doc-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .transcript-doc-student {
+    grid-template-columns: 1fr;
+  }
+
+  .transcript-doc-actions {
+    flex-direction: column;
+  }
+
+  .transcript-doc-btn {
+    justify-content: center;
+  }
+
+  .transcript-doc-watermark {
+    font-size: 3rem;
+  }
+}
