@@ -1,85 +1,26 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import api from '../utils/api'
 
 const AuthContext = createContext(null)
 
 const STORAGE_KEY = 'pu-lms-auth'
 
-// Mock user data generator based on role
+// Mock user data generator (fallback when backend is not running)
 function createMockUser(email, role) {
   const roleProfiles = {
-    student: {
-      firstName: 'Ahmed',
-      lastName: 'Khan',
-      department: 'Computer Science',
-      avatar: null,
-    },
-    teacher: {
-      firstName: 'Dr. Sarah',
-      lastName: 'Malik',
-      department: 'Computer Science',
-      avatar: null,
-    },
-    admin: {
-      firstName: 'Muhammad',
-      lastName: 'Ali',
-      department: 'IT Administration',
-      avatar: null,
-    },
-    hod: {
-      firstName: 'Prof. Fatima',
-      lastName: 'Zahra',
-      department: 'Computer Science',
-      avatar: null,
-    },
-    vc: {
-      firstName: 'Prof. Dr. Khalid',
-      lastName: 'Mahmood',
-      department: 'Vice Chancellor Office',
-      avatar: null,
-    },
-    dean: {
-      firstName: 'Dr. Usman',
-      lastName: 'Tariq',
-      department: 'Faculty of Computing',
-      avatar: null,
-    },
-    registrar: {
-      firstName: 'Dr. Amina',
-      lastName: 'Bibi',
-      department: 'Registrar Office',
-      avatar: null,
-    },
-    treasurer: {
-      firstName: 'Mr. Faisal',
-      lastName: 'Shahzad',
-      department: 'Treasury',
-      avatar: null,
-    },
-    clerk: {
-      firstName: 'Ayesha',
-      lastName: 'Siddiqui',
-      department: 'Administration',
-      avatar: null,
-    },
-    controller: {
-      firstName: 'Dr. Nasir',
-      lastName: 'Hussain',
-      department: 'Controller of Examinations',
-      avatar: null,
-    },
+    student: { firstName: 'Ahmed', lastName: 'Khan', department: 'Computer Science' },
+    teacher: { firstName: 'Dr. Sarah', lastName: 'Malik', department: 'Computer Science' },
+    admin: { firstName: 'Muhammad', lastName: 'Ali', department: 'IT Administration' },
+    hod: { firstName: 'Prof. Fatima', lastName: 'Zahra', department: 'Computer Science' },
+    vc: { firstName: 'Prof. Dr. Khalid', lastName: 'Mahmood', department: 'Vice Chancellor Office' },
+    dean: { firstName: 'Dr. Usman', lastName: 'Tariq', department: 'Faculty of Computing' },
+    registrar: { firstName: 'Dr. Amina', lastName: 'Bibi', department: 'Registrar Office' },
+    treasurer: { firstName: 'Mr. Faisal', lastName: 'Shahzad', department: 'Treasury' },
+    clerk: { firstName: 'Ayesha', lastName: 'Siddiqui', department: 'Administration' },
+    controller: { firstName: 'Dr. Nasir', lastName: 'Hussain', department: 'Controller of Examinations' },
   }
-
   const profile = roleProfiles[role] || roleProfiles.student
-
-  return {
-    id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`,
-    email,
-    firstName: profile.firstName,
-    lastName: profile.lastName,
-    role,
-    avatar: profile.avatar,
-    department: profile.department,
-  }
+  return { id: `mock_${Date.now()}`, email, role, avatar: null, ...profile }
 }
 
 export function AuthProvider({ children }) {
@@ -118,19 +59,26 @@ export function AuthProvider({ children }) {
 
   const login = useCallback(async (email, password, role = 'student') => {
     setLoading(true)
-
-    // Simulate network latency for realistic UX
-    await new Promise(resolve => setTimeout(resolve, 800))
-
-    const newUser = createMockUser(email, role)
-    setUser(newUser)
-    setLoading(false)
-
-    return newUser
+    try {
+      // Try real backend first
+      const data = await api.login(email, password)
+      setUser(data.user)
+      setLoading(false)
+      return data.user
+    } catch (err) {
+      // Fallback to mock if backend is not running
+      console.log('Backend not available, using mock login:', err.message)
+      await new Promise(resolve => setTimeout(resolve, 500))
+      const mockUser = createMockUser(email, role)
+      setUser(mockUser)
+      setLoading(false)
+      return mockUser
+    }
   }, [])
 
   const logout = useCallback(() => {
     setUser(null)
+    api.logout()
     try {
       localStorage.removeItem(STORAGE_KEY)
     } catch {
@@ -139,23 +87,13 @@ export function AuthProvider({ children }) {
   }, [])
 
   const updateUser = useCallback((updates) => {
-    setUser(prev => {
-      if (!prev) return prev
-      return { ...prev, ...updates }
-    })
+    setUser(prev => prev ? { ...prev, ...updates } : prev)
   }, [])
 
   const isAuthenticated = !!user
 
   const value = useMemo(
-    () => ({
-      user,
-      isAuthenticated,
-      loading,
-      login,
-      logout,
-      updateUser,
-    }),
+    () => ({ user, isAuthenticated, loading, login, logout, updateUser }),
     [user, isAuthenticated, loading, login, logout, updateUser]
   )
 
