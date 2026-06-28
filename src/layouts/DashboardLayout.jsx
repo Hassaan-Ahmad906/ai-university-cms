@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/common/Sidebar/Sidebar'
 import Topbar from '../components/common/Topbar/Topbar'
+import AIChatWidget from '../components/AIChatWidget/AIChatWidget'
 import { useAuth } from '../contexts/AuthContext'
 import { useTheme } from '../contexts/ThemeContext'
 import {
@@ -156,6 +157,8 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
+
+      <AIChatWidget />
     </div>
   )
 }

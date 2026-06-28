@@ -18,6 +18,10 @@ import TranscriptsPage from './pages/Transcripts/TranscriptsPage'
 import NotificationsPage from './pages/Notifications/NotificationsPage'
 import MessagesPage from './pages/Messages/MessagesPage'
 import SettingsPage from './pages/Settings/SettingsPage'
+import FeesPage from './pages/Fees/FeesPage'
+import CalendarPage from './pages/Calendar/CalendarPage'
+import AnnouncementsPage from './pages/Announcements/AnnouncementsPage'
+import ExamsPage from './pages/Exams/ExamsPage'
 import NotFoundPage from './pages/NotFound/NotFoundPage'
 
 function ProtectedRoute({ children }) {
@@ -68,10 +72,16 @@ function AppRoutes() {
         {/* Shared */}
         <Route path="courses" element={<CoursesPage />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="users/*" element={<UsersPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="messages" element={<MessagesPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="fees" element={<FeesPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="exams" element={<ExamsPage />} />
+        <Route path="quizzes" element={<ExamsPage />} />
         
         {/* Teacher */}
         <Route path="assignments" element={<AssignmentsPage />} />
@@ -81,6 +91,7 @@ function AppRoutes() {
         {/* Student */}
         <Route path="grades" element={<GradesPage />} />
         <Route path="timetable" element={<TimetablePage />} />
+        <Route path="schedule" element={<TimetablePage />} />
         <Route path="transcripts" element={<TranscriptsPage />} />
         
         {/* Catch-all for unbuilt pages */}
