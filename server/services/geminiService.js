@@ -4,12 +4,19 @@
  * falls back to smart mock responses otherwise.
  */
 
-let genAI = null
+import dotenv from 'dotenv'
+dotenv.config()
 
-// Try to initialize Gemini (non-blocking)
+let genAI = null
+let initialized = false
+
+// Try to initialize Gemini (lazy - called on first use)
 async function initGemini() {
+  if (initialized) return
+  initialized = true
+
   const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey || apiKey === 'mock') {
+  if (!apiKey || apiKey === 'mock' || apiKey === 'YOUR_GEMINI_API_KEY_HERE') {
     console.log('ℹ️  AI running in MOCK MODE (no API key configured)')
     return
   }
@@ -17,12 +24,20 @@ async function initGemini() {
   try {
     const { GoogleGenerativeAI } = await import('@google/generative-ai')
     genAI = new GoogleGenerativeAI(apiKey)
-    console.log('✅ Google Gemini AI initialized')
+    // Quick test
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    const testResult = await model.generateContent('Say hello in one word')
+    if (testResult.response) {
+      console.log('✅ Google Gemini AI connected and verified')
+    }
   } catch (error) {
-    console.log('⚠️  Could not load Gemini SDK — using mock responses')
+    console.log('⚠️  Gemini AI key provided but could not connect:', error.message)
+    console.log('   AI will use intelligent mock responses instead')
+    genAI = null
   }
 }
 
+// Initialize immediately now that dotenv is loaded
 initGemini()
 
 // ── System prompts per role ──

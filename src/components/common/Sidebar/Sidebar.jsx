@@ -106,19 +106,13 @@ const Sidebar = ({
       />
 
       <aside className={sidebarClasses} aria-label="Main navigation">
-        {/* Collapse Toggle */}
-        <button
-          className="pu-sidebar__toggle"
-          onClick={onToggle}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <ChevronLeft />
-        </button>
-
         {/* Logo */}
         <div className="pu-sidebar__logo">
           <div className="pu-sidebar__logo-monogram">PU</div>
-          <span className="pu-sidebar__logo-text">PU LMS</span>
+          <span className="pu-sidebar__logo-text">PU CMS</span>
+          <button className="pu-sidebar__toggle" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
+            <ChevronLeft />
+          </button>
         </div>
 
         {/* Role Badge */}

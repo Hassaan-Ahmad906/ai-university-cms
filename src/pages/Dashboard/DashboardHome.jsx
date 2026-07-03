@@ -235,7 +235,7 @@ function AdminDashboard({ user }) {
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Admin</span></h1>
-          <p className="dash-welcome__summary">University of the Punjab LMS — System Overview</p>
+          <p className="dash-welcome__summary">University of the Punjab CMS — System Overview</p>
         </div>
       </div>
 

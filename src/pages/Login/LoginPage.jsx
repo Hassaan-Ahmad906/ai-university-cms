@@ -4,27 +4,19 @@ import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import { 
   Eye, EyeOff, Mail, Lock, Sun, Moon, 
-  GraduationCap, BookOpen, Users, Shield,
-  ArrowRight, Sparkles
+  ArrowRight
 } from 'lucide-react'
 import puLogoDark from '../../assets/logo/pu-logo-dark.png'
 import puLogoLight from '../../assets/logo/pu-logo-light.png'
 import './LoginPage.css'
 
-const DEMO_ACCOUNTS = [
-  { role: 'admin', label: 'Super Admin', icon: Shield, color: '#ef4444' },
-  { role: 'vc', label: 'Vice Chancellor', icon: GraduationCap, color: '#8b5cf6' },
-  { role: 'dean', label: 'Dean', icon: Users, color: '#3b82f6' },
-  { role: 'hod', label: 'HOD', icon: BookOpen, color: '#10b981' },
-  { role: 'teacher', label: 'Teacher', icon: BookOpen, color: '#f59e0b' },
-  { role: 'student', label: 'Student', icon: GraduationCap, color: '#06b6d4' },
-]
+
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [selectedRole, setSelectedRole] = useState('student')
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const navigate = useNavigate()
@@ -34,22 +26,22 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!email.trim() || !password.trim()) {
+      setError('Please enter email and password')
+      return
+    }
+
     setIsLoading(true)
     
     try {
-      await login(email || 'demo@pu.edu.pk', password || 'demo123', selectedRole)
+      await login(email, password)
       navigate('/dashboard')
     } catch (err) {
       setError('Invalid credentials. Please try again.')
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleQuickLogin = (role) => {
-    setSelectedRole(role)
-    setEmail(`${role}@pu.edu.pk`)
-    setPassword('demo123')
   }
 
   const logo = theme === 'dark' ? puLogoDark : puLogoLight
@@ -80,35 +72,35 @@ export default function LoginPage() {
             <h1 className="login-university-name">
               University of <span className="login-gold-text">the Punjab</span>
             </h1>
-            <p className="login-tagline">Learning Management System</p>
+            <p className="login-tagline">Campus Management System</p>
             
             <div className="login-features">
               <div className="login-feature">
-                <div className="login-feature-icon">
+                {/* <div className="login-feature-icon">
                   <Sparkles size={18} />
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <h4>AI-Powered Learning</h4>
                   <p>Smart recommendations & instant help</p>
-                </div>
+                </div> */}
               </div>
               <div className="login-feature">
-                <div className="login-feature-icon">
+                {/* <div className="login-feature-icon">
                   <BookOpen size={18} />
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <h4>Complete Academic Suite</h4>
                   <p>Courses, exams, grades & transcripts</p>
-                </div>
+                </div> */}
               </div>
               <div className="login-feature">
-                <div className="login-feature-icon">
+                {/* <div className="login-feature-icon">
                   <Users size={18} />
-                </div>
-                <div>
+                </div> */}
+                {/* <div>
                   <h4>Multi-Role Access</h4>
                   <p>Students, faculty & administration</p>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -126,27 +118,7 @@ export default function LoginPage() {
               <p>Sign in to access your account</p>
             </div>
 
-            {/* Quick role select */}
-            <div className="login-quick-roles">
-              <p className="login-quick-roles-label">Quick Demo Access</p>
-              <div className="login-role-chips">
-                {DEMO_ACCOUNTS.map(({ role, label, icon: Icon, color }) => (
-                  <button
-                    key={role}
-                    className={`login-role-chip ${selectedRole === role ? 'active' : ''}`}
-                    onClick={() => handleQuickLogin(role)}
-                    style={{ '--chip-color': color }}
-                  >
-                    <Icon size={14} />
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
 
-            <div className="login-divider">
-              <span>or sign in with credentials</span>
-            </div>
 
             <form onSubmit={handleSubmit} className="login-form">
               {error && (

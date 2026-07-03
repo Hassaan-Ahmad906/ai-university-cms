@@ -31,7 +31,7 @@ function ProtectedRoute({ children }) {
     return (
       <div className="app-loading">
         <div className="app-loading-spinner" />
-        <p>Loading PU LMS...</p>
+        <p>Loading PU CMS...</p>
       </div>
     )
   }

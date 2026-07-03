@@ -1,6 +1,8 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import express from 'express'
 import cors from 'cors'
-import dotenv from 'dotenv'
 import connectDB from './config/db.js'
 
 // Route imports
@@ -15,9 +17,6 @@ import messageRoutes from './routes/messages.js'
 import transcriptRoutes from './routes/transcripts.js'
 import dashboardRoutes from './routes/dashboard.js'
 import aiRoutes from './routes/ai.js'
-
-// Load environment variables
-dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -45,7 +44,7 @@ app.use('/api/ai', aiRoutes)
 
 // ── Health Check ──
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'PU LMS Server is running', timestamp: new Date().toISOString() })
+  res.json({ status: 'ok', message: 'PU CMS Server is running', timestamp: new Date().toISOString() })
 })
 
 // ── 404 Handler ──
@@ -67,7 +66,7 @@ async function startServer() {
   try {
     await connectDB()
     app.listen(PORT, () => {
-      console.log(`🚀 PU LMS Server running on port ${PORT}`)
+      console.log(`🚀 PU CMS Server running on port ${PORT}`)
       console.log(`📡 API: http://localhost:${PORT}/api`)
       console.log(`🏥 Health: http://localhost:${PORT}/api/health`)
     })

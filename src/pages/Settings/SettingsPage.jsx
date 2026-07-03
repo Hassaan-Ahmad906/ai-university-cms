@@ -40,7 +40,7 @@ export default function SettingsPage() {
           {activeTab === 'appearance' && (
             <div className="settings-section">
               <h2>Appearance</h2>
-              <p className="settings-section__desc">Customize how PU LMS looks on your device</p>
+              <p className="settings-section__desc">Customize how PU CMS looks on your device</p>
 
               <div className="settings-group">
                 <label className="settings-label">Theme</label>
