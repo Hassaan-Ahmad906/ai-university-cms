@@ -162,7 +162,7 @@ function TeacherView() {
 
 export default function ExamsPage() {
   const { user } = useAuth()
-  const isTeacher = ['teacher', 'admin', 'hod'].includes(user?.role)
+  const isTeacher = ['teacher', 'admin', 'hod', 'controller'].includes(user?.role)
 
   return (
     <div className="exam-page">

@@ -107,6 +107,13 @@
   z-index: 1;
 }
 
+.dash-welcome__logo {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .dash-welcome__greeting {
   font-size: var(--text-md);
   font-weight: var(--font-medium);

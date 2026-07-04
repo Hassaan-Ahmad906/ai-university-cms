@@ -1,4 +1,7 @@
 import { useAuth } from '../../contexts/AuthContext'
+import { useTheme } from '../../contexts/ThemeContext'
+import puLogoDark from '../../assets/logo/pu-logo-dark.png'
+import puLogoLight from '../../assets/logo/pu-logo-light.png'
 import {
   Sparkles, Sun, CloudSun, Moon, TrendingUp, TrendingDown,
   BookOpen, ClipboardList, CalendarClock, BarChart3, Users,
@@ -19,7 +22,7 @@ function getGreeting() {
 /* ============================================================
    STUDENT DASHBOARD
    ============================================================ */
-function StudentDashboard({ user }) {
+function StudentDashboard({ user, logo }) {
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -54,6 +57,7 @@ function StudentDashboard({ user }) {
     <div className="dash-home">
       {/* Welcome Section */}
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting">
             <GreetIcon size={18} /> {greeting.text}
@@ -185,7 +189,7 @@ function StudentDashboard({ user }) {
 /* ============================================================
    ADMIN DASHBOARD
    ============================================================ */
-function AdminDashboard({ user }) {
+function AdminDashboard({ user, logo }) {
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -232,6 +236,7 @@ function AdminDashboard({ user }) {
     <div className="dash-home">
       {/* Welcome */}
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Admin</span></h1>
@@ -996,13 +1001,15 @@ function ClerkDashboard({ user }) {
    ============================================================ */
 export default function DashboardHome() {
   const { user } = useAuth()
+  const { theme } = useTheme()
+  const logo = theme === 'dark' ? puLogoDark : puLogoLight
   const role = user?.role || 'student'
 
   switch (role) {
     case 'student':
-      return <StudentDashboard user={user} />
+      return <StudentDashboard user={user} logo={logo} />
     case 'admin':
-      return <AdminDashboard user={user} />
+      return <AdminDashboard user={user} logo={logo} />
     case 'teacher':
       return <TeacherDashboard user={user} />
     case 'hod':

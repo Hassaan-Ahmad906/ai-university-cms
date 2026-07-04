@@ -31,9 +31,16 @@ async function initGemini() {
       console.log('✅ Google Gemini AI connected and verified')
     }
   } catch (error) {
-    console.log('⚠️  Gemini AI key provided but could not connect:', error.message)
-    console.log('   AI will use intelligent mock responses instead')
-    genAI = null
+    const isQuotaError = error.message?.includes('quota') || error.message?.includes('429') || error.message?.includes('RESOURCE_EXHAUSTED')
+    if (isQuotaError) {
+      // Key is valid but quota exhausted — keep genAI initialized
+      console.log('⚠️  Gemini AI connected but quota limit reached. Will retry on next request.')
+      // genAI stays set — it will work when quota resets
+    } else {
+      console.log('⚠️  Gemini AI key provided but could not connect:', error.message)
+      console.log('   AI will use intelligent mock responses instead')
+      genAI = null
+    }
   }
 }
 

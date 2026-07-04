@@ -1,4 +1,5 @@
 import { BookOpen, Plus, Search, Filter, Grid3X3, List } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
 import './CoursesPage.css'
 
 const MOCK_COURSES = [
@@ -20,17 +21,22 @@ const getStatusColor = (status) => {
 }
 
 export default function CoursesPage() {
+  const { user } = useAuth()
+  const isStudent = user?.role === 'student'
+
   return (
     <div className="courses-page">
       <div className="courses-header">
         <div>
           <h1>Courses</h1>
-          <p>Manage and browse all available courses</p>
+          <p>{isStudent ? 'Browse and view your enrolled courses' : 'Manage and browse all available courses'}</p>
         </div>
-        <button className="courses-add-btn">
-          <Plus size={18} />
-          <span>Add Course</span>
-        </button>
+        {!isStudent && (
+          <button className="courses-add-btn">
+            <Plus size={18} />
+            <span>Add Course</span>
+          </button>
+        )}
       </div>
 
       <div className="courses-toolbar">

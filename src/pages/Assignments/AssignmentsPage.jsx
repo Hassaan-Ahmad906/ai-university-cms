@@ -3,15 +3,22 @@ import { useAuth } from '../../contexts/AuthContext'
 import {
   ClipboardList, Plus, Search, Filter, Eye, Pencil, Star,
   Calendar, Users, BarChart3, Clock, FileText, CheckCircle2,
-  AlertCircle, ChevronDown
+  AlertCircle, ChevronDown, Send
 } from 'lucide-react'
 import './AssignmentsPage.css'
 
-const STATS = [
+const TEACHER_STATS = [
   { label: 'Total Assignments', value: '24', icon: ClipboardList, color: '#5c6bc0' },
   { label: 'Pending Review', value: '8', icon: Clock, color: '#ff9800' },
   { label: 'Graded', value: '142', icon: CheckCircle2, color: '#4caf50' },
   { label: 'Average Score', value: '78%', icon: BarChart3, color: '#c9a96e' },
+]
+
+const STUDENT_STATS = [
+  { label: 'My Assignments', value: '6', icon: ClipboardList, color: '#5c6bc0' },
+  { label: 'Submitted', value: '4', icon: CheckCircle2, color: '#4caf50' },
+  { label: 'Pending', value: '2', icon: Clock, color: '#ff9800' },
+  { label: 'Average Score', value: '85%', icon: BarChart3, color: '#c9a96e' },
 ]
 
 const COURSES = ['All Courses', 'CS-301 Data Structures', 'CS-401 Artificial Intelligence', 'CS-302 Database Systems', 'MATH-201 Linear Algebra']
@@ -100,6 +107,8 @@ const ASSIGNMENTS = [
 
 export default function AssignmentsPage() {
   const { user } = useAuth()
+  const isStudent = user?.role === 'student'
+  const stats = isStudent ? STUDENT_STATS : TEACHER_STATS
   const [searchQuery, setSearchQuery] = useState('')
   const [courseFilter, setCourseFilter] = useState('All Courses')
   const [statusFilter, setStatusFilter] = useState('All')
@@ -125,18 +134,22 @@ export default function AssignmentsPage() {
           </div>
           <div>
             <h1 className="assign-header__title">Assignments</h1>
-            <p className="assign-header__subtitle">Manage and grade your course assignments</p>
+            <p className="assign-header__subtitle">
+              {isStudent ? 'View and submit your assignments' : 'Manage and grade your course assignments'}
+            </p>
           </div>
         </div>
-        <button className="assign-create-btn">
-          <Plus size={18} />
-          <span>Create Assignment</span>
-        </button>
+        {!isStudent && (
+          <button className="assign-create-btn">
+            <Plus size={18} />
+            <span>Create Assignment</span>
+          </button>
+        )}
       </div>
 
       {/* Stats */}
       <div className="assign-stats">
-        {STATS.map((stat, i) => {
+        {stats.map((stat, i) => {
           const Icon = stat.icon
           return (
             <div key={i} className="assign-stat-card" style={{ '--stat-color': stat.color, '--stagger': i }}>
@@ -241,14 +254,23 @@ export default function AssignmentsPage() {
                   <Eye size={14} />
                   <span>View</span>
                 </button>
-                <button className="assign-action-btn assign-action-btn--edit">
-                  <Pencil size={14} />
-                  <span>Edit</span>
-                </button>
-                <button className="assign-action-btn assign-action-btn--grade">
-                  <FileText size={14} />
-                  <span>Grade</span>
-                </button>
+                {isStudent ? (
+                  <button className="assign-action-btn assign-action-btn--grade">
+                    <Send size={14} />
+                    <span>Submit</span>
+                  </button>
+                ) : (
+                  <>
+                    <button className="assign-action-btn assign-action-btn--edit">
+                      <Pencil size={14} />
+                      <span>Edit</span>
+                    </button>
+                    <button className="assign-action-btn assign-action-btn--grade">
+                      <FileText size={14} />
+                      <span>Grade</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
