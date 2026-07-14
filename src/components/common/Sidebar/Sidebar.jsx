@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
+import puLogoDark from '../../../assets/logo/pu-logo-dark.png';
 import './Sidebar.css';
 
 const SidebarItem = ({ item, collapsed }) => {
@@ -108,7 +109,7 @@ const Sidebar = ({
       <aside className={sidebarClasses} aria-label="Main navigation">
         {/* Logo */}
         <div className="pu-sidebar__logo">
-          <div className="pu-sidebar__logo-monogram">PU</div>
+          <img src={puLogoDark} alt="PU" className="pu-sidebar__logo-img" />
           <span className="pu-sidebar__logo-text">PU CMS</span>
           <button className="pu-sidebar__toggle" onClick={onToggle} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}>
             <ChevronLeft />

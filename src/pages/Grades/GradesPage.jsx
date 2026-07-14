@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   BarChart3, Award, BookOpen, Star, TrendingUp,
@@ -6,7 +6,9 @@ import {
 } from 'lucide-react'
 import './GradesPage.css'
 
-const semesterData = {
+const API_BASE = 'http://localhost:5000/api'
+
+const hardcodedSemesterData = {
   'Fall 2025': {
     gpa: 3.58,
     courses: [
@@ -31,7 +33,7 @@ const semesterData = {
   }
 }
 
-const cgpaTrend = [
+const hardcodedCgpaTrend = [
   { semester: 'Fall 2024', gpa: 3.45 },
   { semester: 'Spring 2025', gpa: 3.62 },
   { semester: 'Fall 2025', gpa: 3.58 },
@@ -49,14 +51,60 @@ function getGradeClass(grade) {
 
 export default function GradesPage() {
   const { user } = useAuth()
+  const [semesterData, setSemesterData] = useState(hardcodedSemesterData)
+  const [cgpa, setCgpa] = useState(3.72)
+  const [cgpaTrend, setCgpaTrend] = useState(hardcodedCgpaTrend)
   const [activeSemester, setActiveSemester] = useState('Spring 2026')
+
+  useEffect(() => {
+    const token = localStorage.getItem('pu-lms-token')
+
+    const fetchGrades = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/grades`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data && typeof data === 'object') {
+            // Expect data.semesters as { 'Fall 2025': { gpa, courses }, ... }
+            if (data.semesters) {
+              setSemesterData(data.semesters)
+              const semKeys = Object.keys(data.semesters)
+              if (semKeys.length > 0) setActiveSemester(semKeys[semKeys.length - 1])
+            }
+            if (data.trend) setCgpaTrend(data.trend)
+          }
+        }
+      } catch {
+        // API unreachable — keep hardcoded data
+      }
+    }
+
+    const fetchCgpa = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/grades/cgpa`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.cgpa != null) setCgpa(data.cgpa)
+        }
+      } catch {
+        // API unreachable — keep hardcoded CGPA
+      }
+    }
+
+    fetchGrades()
+    fetchCgpa()
+  }, [])
+
   const semesters = Object.keys(semesterData)
-  const currentData = semesterData[activeSemester]
+  const currentData = semesterData[activeSemester] || { gpa: 0, courses: [] }
   const totalCredits = currentData.courses.reduce((sum, c) => sum + c.credits, 0)
   const totalPoints = currentData.courses.reduce((sum, c) => sum + (c.credits * c.points), 0)
-  const semGPA = (totalPoints / totalCredits).toFixed(2)
+  const semGPA = totalCredits > 0 ? (totalPoints / totalCredits).toFixed(2) : '0.00'
 
-  const cgpa = 3.72
   const cgpaPercent = (cgpa / 4.0) * 100
 
   return (
@@ -110,7 +158,7 @@ export default function GradesPage() {
           </div>
           <div className="grades-card__info">
             <span className="grades-card__label">Semester GPA</span>
-            <span className="grades-card__value">{currentData.gpa.toFixed(2)}</span>
+            <span className="grades-card__value">{currentData.gpa?.toFixed?.(2) ?? semGPA}</span>
           </div>
           <div className="grades-card__accent-line grades-card__accent-line--blue" />
         </div>

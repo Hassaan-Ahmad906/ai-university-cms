@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { Send, Search, MoreVertical, Phone, Video, Paperclip, Smile, Check, CheckCheck } from 'lucide-react'
 import './MessagesPage.css'
@@ -24,11 +24,97 @@ const MOCK_MESSAGES = [
 
 export default function MessagesPage() {
   const { user } = useAuth()
-  const [selectedChat, setSelectedChat] = useState(MOCK_CONVERSATIONS[0])
+  const [conversations, setConversations] = useState(MOCK_CONVERSATIONS)
+  const [selectedChat, setSelectedChat] = useState(null)
+  const [messages, setMessages] = useState(MOCK_MESSAGES)
   const [messageInput, setMessageInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [loadingConvos, setLoadingConvos] = useState(true)
+  const [loadingMessages, setLoadingMessages] = useState(false)
 
-  const filteredConversations = MOCK_CONVERSATIONS.filter(c =>
+  // Fetch conversations on mount
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        const res = await fetch('http://localhost:5000/api/messages/conversations', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch conversations')
+        const data = await res.json()
+        const list = Array.isArray(data) ? data : data.conversations || MOCK_CONVERSATIONS
+        setConversations(list)
+        if (list.length > 0) setSelectedChat(list[0])
+      } catch (err) {
+        console.error('Error fetching conversations, using mock data:', err)
+        setConversations(MOCK_CONVERSATIONS)
+        setSelectedChat(MOCK_CONVERSATIONS[0])
+      } finally {
+        setLoadingConvos(false)
+      }
+    }
+    fetchConversations()
+  }, [])
+
+  // Fetch messages when selected chat changes
+  useEffect(() => {
+    if (!selectedChat) return
+    const fetchMessages = async () => {
+      setLoadingMessages(true)
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        const res = await fetch(`http://localhost:5000/api/messages/${selectedChat.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch messages')
+        const data = await res.json()
+        setMessages(Array.isArray(data) ? data : data.messages || MOCK_MESSAGES)
+      } catch (err) {
+        console.error('Error fetching messages, using mock data:', err)
+        setMessages(MOCK_MESSAGES)
+      } finally {
+        setLoadingMessages(false)
+      }
+    }
+    fetchMessages()
+  }, [selectedChat?.id])
+
+  const handleSend = async () => {
+    if (!messageInput.trim() || !selectedChat) return
+    const newMsg = {
+      id: Date.now(),
+      sender: 'me',
+      text: messageInput.trim(),
+      time: new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+      status: 'sent',
+    }
+    setMessages(prev => [...prev, newMsg])
+    setMessageInput('')
+
+    try {
+      const token = localStorage.getItem('pu-lms-token')
+      const res = await fetch('http://localhost:5000/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ receiver: selectedChat.id, text: newMsg.text }),
+      })
+      if (!res.ok) throw new Error('Failed to send message')
+    } catch (err) {
+      console.error('API error sending message (shown locally):', err)
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
+  }
+
+  const filteredConversations = conversations.filter(c =>
     c.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
@@ -44,22 +130,26 @@ export default function MessagesPage() {
           <input placeholder="Search conversations..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <div className="msg-sidebar__list">
-          {filteredConversations.map(conv => (
-            <div key={conv.id} className={`msg-conv ${selectedChat?.id === conv.id ? 'active' : ''}`} onClick={() => setSelectedChat(conv)}>
-              <div className="msg-conv__avatar">
-                {conv.avatar}
-                {conv.online && <span className="msg-conv__online" />}
+          {loadingConvos ? (
+            <div style={{ padding: '1.5rem', textAlign: 'center', color: '#888' }}>Loading...</div>
+          ) : (
+            filteredConversations.map(conv => (
+              <div key={conv.id} className={`msg-conv ${selectedChat?.id === conv.id ? 'active' : ''}`} onClick={() => setSelectedChat(conv)}>
+                <div className="msg-conv__avatar">
+                  {conv.avatar}
+                  {conv.online && <span className="msg-conv__online" />}
+                </div>
+                <div className="msg-conv__info">
+                  <div className="msg-conv__name">{conv.name}</div>
+                  <div className="msg-conv__preview">{conv.lastMessage}</div>
+                </div>
+                <div className="msg-conv__meta">
+                  <span className="msg-conv__time">{conv.time}</span>
+                  {conv.unread > 0 && <span className="msg-conv__badge">{conv.unread}</span>}
+                </div>
               </div>
-              <div className="msg-conv__info">
-                <div className="msg-conv__name">{conv.name}</div>
-                <div className="msg-conv__preview">{conv.lastMessage}</div>
-              </div>
-              <div className="msg-conv__meta">
-                <span className="msg-conv__time">{conv.time}</span>
-                {conv.unread > 0 && <span className="msg-conv__badge">{conv.unread}</span>}
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
 
@@ -83,24 +173,34 @@ export default function MessagesPage() {
             </div>
 
             <div className="msg-chat__messages">
-              {MOCK_MESSAGES.map(msg => (
-                <div key={msg.id} className={`msg-bubble ${msg.sender === 'me' ? 'msg-bubble--sent' : 'msg-bubble--received'}`}>
-                  <div className="msg-bubble__text">{msg.text}</div>
-                  <div className="msg-bubble__meta">
-                    <span>{msg.time}</span>
-                    {msg.sender === 'me' && (
-                      msg.status === 'read' ? <CheckCheck size={14} className="msg-bubble__read" /> : <Check size={14} />
-                    )}
+              {loadingMessages ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Loading messages...</div>
+              ) : (
+                messages.map(msg => (
+                  <div key={msg.id} className={`msg-bubble ${msg.sender === 'me' ? 'msg-bubble--sent' : 'msg-bubble--received'}`}>
+                    <div className="msg-bubble__text">{msg.text}</div>
+                    <div className="msg-bubble__meta">
+                      <span>{msg.time}</span>
+                      {msg.sender === 'me' && (
+                        msg.status === 'read' ? <CheckCheck size={14} className="msg-bubble__read" /> : <Check size={14} />
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             <div className="msg-chat__input-area">
               <button className="msg-chat__attach-btn"><Paperclip size={18} /></button>
-              <input className="msg-chat__input" placeholder="Type a message..." value={messageInput} onChange={e => setMessageInput(e.target.value)} />
+              <input
+                className="msg-chat__input"
+                placeholder="Type a message..."
+                value={messageInput}
+                onChange={e => setMessageInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
               <button className="msg-chat__emoji-btn"><Smile size={18} /></button>
-              <button className="msg-chat__send-btn"><Send size={18} /></button>
+              <button className="msg-chat__send-btn" onClick={handleSend}><Send size={18} /></button>
             </div>
           </>
         ) : (

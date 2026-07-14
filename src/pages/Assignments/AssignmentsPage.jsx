@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import {
   ClipboardList, Plus, Search, Filter, Eye, Pencil, Star,
   Calendar, Users, BarChart3, Clock, FileText, CheckCircle2,
@@ -107,16 +108,37 @@ const ASSIGNMENTS = [
 
 export default function AssignmentsPage() {
   const { user } = useAuth()
+  const navigate = useNavigate()
+  const isTeacher = ['teacher', 'admin', 'hod'].includes(user?.role)
   const isStudent = user?.role === 'student'
   const stats = isStudent ? STUDENT_STATS : TEACHER_STATS
+  const [assignments, setAssignments] = useState(ASSIGNMENTS)
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [courseFilter, setCourseFilter] = useState('All Courses')
   const [statusFilter, setStatusFilter] = useState('All')
 
-  const filteredAssignments = ASSIGNMENTS.filter(a => {
-    const matchesSearch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.course.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesCourse = courseFilter === 'All Courses' || a.course.includes(courseFilter.split(' ').slice(0, 1).join(''))
+  useEffect(() => {
+    const fetchAssignments = async () => {
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        const res = await fetch('http://localhost:5000/api/assignments', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data.assignments?.length > 0) setAssignments(data.assignments)
+        }
+      } catch { /* use mock data */ }
+      finally { setLoading(false) }
+    }
+    fetchAssignments()
+  }, [])
+
+  const filteredAssignments = assignments.filter(a => {
+    const matchesSearch = a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.course?.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesCourse = courseFilter === 'All Courses' || a.course?.includes(courseFilter.split(' ').slice(0, 1).join(''))
     const matchesStatus = statusFilter === 'All' ||
       (statusFilter === 'Active' && a.status === 'active') ||
       (statusFilter === 'Expired' && a.status === 'expired') ||
@@ -139,8 +161,8 @@ export default function AssignmentsPage() {
             </p>
           </div>
         </div>
-        {!isStudent && (
-          <button className="assign-create-btn">
+        {isTeacher && (
+          <button className="assign-create-btn" onClick={() => alert('Create Assignment form coming soon')}>
             <Plus size={18} />
             <span>Create Assignment</span>
           </button>
@@ -250,22 +272,23 @@ export default function AssignmentsPage() {
                 )}
               </div>
               <div className="assign-card__actions">
-                <button className="assign-action-btn assign-action-btn--view">
+                <button className="assign-action-btn assign-action-btn--view" onClick={() => alert(`Viewing: ${assignment.title}`)}>
                   <Eye size={14} />
                   <span>View</span>
                 </button>
-                {isStudent ? (
-                  <button className="assign-action-btn assign-action-btn--grade">
+                {isStudent && (
+                  <button className="assign-action-btn assign-action-btn--grade" onClick={() => alert(`Submit Assignment: ${assignment.title}`)}>
                     <Send size={14} />
                     <span>Submit</span>
                   </button>
-                ) : (
+                )}
+                {isTeacher && (
                   <>
-                    <button className="assign-action-btn assign-action-btn--edit">
+                    <button className="assign-action-btn assign-action-btn--edit" onClick={() => alert(`Edit Assignment: ${assignment.title}`)}>
                       <Pencil size={14} />
                       <span>Edit</span>
                     </button>
-                    <button className="assign-action-btn assign-action-btn--grade">
+                    <button className="assign-action-btn assign-action-btn--grade" onClick={() => alert(`Grade Assignment: ${assignment.title}`)}>
                       <FileText size={14} />
                       <span>Grade</span>
                     </button>

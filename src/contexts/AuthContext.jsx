@@ -58,22 +58,29 @@ export function AuthProvider({ children }) {
   }, [user])
 
   const login = useCallback(async (email, password) => {
-    setLoading(true)
     try {
       // Backend auto-detects role from credentials
       const data = await api.login(email, password)
       setUser(data.user)
-      setLoading(false)
       return data.user
     } catch (err) {
-      // Fallback to mock if backend is not running
-      console.log('Backend not available, using mock login:', err.message)
-      await new Promise(resolve => setTimeout(resolve, 500))
-      // Auto-detect role from email prefix (e.g. student@pu.edu.pk → student)
+      // Only fallback to mock if backend server is unreachable (network error)
+      const isNetworkError = err.message?.includes('Cannot connect') ||
+                             err.message?.includes('Failed to fetch') ||
+                             err.message?.includes('NetworkError') ||
+                             err.message?.includes('Network request failed')
+
+      if (!isNetworkError) {
+        // Auth errors (401 Invalid credentials, 403 deactivated) — re-throw for LoginPage to display
+        throw err
+      }
+
+      // Server offline — use mock login so app still works for demo
+      console.log('Backend unreachable, using mock login:', err.message)
+      await new Promise(resolve => setTimeout(resolve, 400))
       const detectedRole = email.split('@')[0].replace(/[0-9]/g, '') || 'student'
       const mockUser = createMockUser(email, detectedRole)
       setUser(mockUser)
-      setLoading(false)
       return mockUser
     }
   }, [])

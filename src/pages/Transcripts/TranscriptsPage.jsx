@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   FileText, Download, Plus, Clock, CheckCircle2,
@@ -7,13 +7,7 @@ import {
 } from 'lucide-react'
 import './TranscriptsPage.css'
 
-const stats = [
-  { label: 'Total Requests', value: 3, icon: FileText, color: 'primary' },
-  { label: 'Pending', value: 1, icon: Clock, color: 'warning' },
-  { label: 'Ready for Pickup', value: 1, icon: Package, color: 'success' },
-]
-
-const requests = [
+const MOCK_REQUESTS = [
   {
     id: 'TR-2026-001',
     type: 'Official Transcript',
@@ -40,7 +34,7 @@ const requests = [
   },
 ]
 
-const semesterRecords = [
+const MOCK_SEMESTER_RECORDS = [
   { semester: 'Fall 2024', credits: 18, gpa: 3.45 },
   { semester: 'Spring 2025', credits: 18, gpa: 3.62 },
   { semester: 'Fall 2025', credits: 17, gpa: 3.58 },
@@ -64,10 +58,97 @@ function getStatusIcon(status) {
 export default function TranscriptsPage() {
   const { user } = useAuth()
   const [showModal, setShowModal] = useState(false)
+  const [requests, setRequests] = useState(MOCK_REQUESTS)
+  const [semesterRecords, setSemesterRecords] = useState(MOCK_SEMESTER_RECORDS)
+  const [loading, setLoading] = useState(true)
+
+  const isRegistrarOrClerk = user && ['registrar', 'clerk', 'admin'].includes(user.role)
+
+  // Fetch transcript data on mount
+  useEffect(() => {
+    const fetchTranscripts = async () => {
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        const res = await fetch('http://localhost:5000/api/transcripts', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch transcripts')
+        const data = await res.json()
+        if (data.requests) setRequests(data.requests)
+        else if (Array.isArray(data)) setRequests(data)
+        if (data.semesterRecords) setSemesterRecords(data.semesterRecords)
+      } catch (err) {
+        console.error('Error fetching transcripts, using mock data:', err)
+        setRequests(MOCK_REQUESTS)
+        setSemesterRecords(MOCK_SEMESTER_RECORDS)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTranscripts()
+  }, [])
+
+  // Request a new transcript
+  const handleRequestTranscript = async () => {
+    try {
+      const token = localStorage.getItem('pu-lms-token')
+      const res = await fetch('http://localhost:5000/api/transcripts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ type: 'Official Transcript' }),
+      })
+      if (!res.ok) throw new Error('Failed to submit transcript request')
+      const data = await res.json()
+      setRequests(prev => [data.request || data, ...prev])
+      setShowModal(false)
+      alert('Transcript request submitted successfully!')
+    } catch (err) {
+      console.error('Error requesting transcript:', err)
+      alert('Failed to submit request. Please try again.')
+    }
+  }
+
+  // Update status (registrar/clerk only)
+  const handleStatusUpdate = async (id, newStatus, newLabel) => {
+    try {
+      const token = localStorage.getItem('pu-lms-token')
+      const res = await fetch(`http://localhost:5000/api/transcripts/${id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (!res.ok) throw new Error('Failed to update status')
+      setRequests(prev =>
+        prev.map(r =>
+          r.id === id ? { ...r, status: newStatus, statusLabel: newLabel } : r
+        )
+      )
+    } catch (err) {
+      console.error('Error updating status:', err)
+      alert('Failed to update status. Please try again.')
+    }
+  }
+
+  // Compute stats from requests
+  const totalRequests = requests.length
+  const pendingCount = requests.filter(r => r.status === 'processing').length
+  const readyCount = requests.filter(r => r.status === 'ready').length
+
+  const stats = [
+    { label: 'Total Requests', value: totalRequests, icon: FileText, color: 'primary' },
+    { label: 'Pending', value: pendingCount, icon: Clock, color: 'warning' },
+    { label: 'Ready for Pickup', value: readyCount, icon: Package, color: 'success' },
+  ]
 
   const totalCredits = semesterRecords.reduce((s, r) => s + r.credits, 0)
   const weightedGPA = semesterRecords.reduce((s, r) => s + r.credits * r.gpa, 0)
-  const cgpa = (weightedGPA / totalCredits).toFixed(2)
+  const cgpa = totalCredits > 0 ? (weightedGPA / totalCredits).toFixed(2) : '0.00'
 
   const studentName = user ? `${user.firstName} ${user.lastName}` : 'Muhammad Ahmed'
   const rollNumber = '2022-CS-142'
@@ -87,7 +168,7 @@ export default function TranscriptsPage() {
             <p className="transcript-header__subtitle">Request and manage your academic documents</p>
           </div>
         </div>
-        <button className="transcript-request-btn" onClick={() => setShowModal(!showModal)}>
+        <button className="transcript-request-btn" onClick={handleRequestTranscript}>
           <Plus size={18} />
           Request Transcript
         </button>
@@ -124,54 +205,84 @@ export default function TranscriptsPage() {
           </h2>
         </div>
         <div className="transcript-table-scroll">
-          <table className="transcript-table">
-            <thead>
-              <tr>
-                <th>Request ID</th>
-                <th>Document Type</th>
-                <th>Request Date</th>
-                <th>Status</th>
-                <th>Expected Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map((req, i) => {
-                const StatusIcon = getStatusIcon(req.status)
-                return (
-                  <tr key={req.id} style={{ '--row-delay': `${i * 80}ms` }}>
-                    <td>
-                      <span className="transcript-req-id">{req.id}</span>
-                    </td>
-                    <td className="transcript-doc-type">
-                      <FileText size={14} />
-                      {req.type}
-                    </td>
-                    <td className="transcript-date">{req.date}</td>
-                    <td>
-                      <span className={`transcript-status-pill ${getStatusClass(req.status)}`}>
-                        <StatusIcon size={13} />
-                        {req.statusLabel}
-                      </span>
-                    </td>
-                    <td className="transcript-date">{req.expectedDate}</td>
-                    <td>
-                      <div className="transcript-actions">
-                        <button className="transcript-action-btn" title="View">
-                          <Eye size={15} />
-                        </button>
-                        {req.status === 'ready' && (
-                          <button className="transcript-action-btn transcript-action-btn--download" title="Download">
-                            <Download size={15} />
-                          </button>
-                        )}
-                      </div>
+          {loading ? (
+            <div style={{ padding: '2rem', textAlign: 'center', color: '#888' }}>Loading requests...</div>
+          ) : (
+            <table className="transcript-table">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Document Type</th>
+                  <th>Request Date</th>
+                  <th>Status</th>
+                  <th>Expected Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {requests.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#888' }}>
+                      No transcript requests found.
                     </td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                ) : (
+                  requests.map((req, i) => {
+                    const StatusIcon = getStatusIcon(req.status)
+                    return (
+                      <tr key={req.id} style={{ '--row-delay': `${i * 80}ms` }}>
+                        <td>
+                          <span className="transcript-req-id">{req.id}</span>
+                        </td>
+                        <td className="transcript-doc-type">
+                          <FileText size={14} />
+                          {req.type}
+                        </td>
+                        <td className="transcript-date">{req.date}</td>
+                        <td>
+                          <span className={`transcript-status-pill ${getStatusClass(req.status)}`}>
+                            <StatusIcon size={13} />
+                            {req.statusLabel}
+                          </span>
+                        </td>
+                        <td className="transcript-date">{req.expectedDate}</td>
+                        <td>
+                          <div className="transcript-actions">
+                            <button className="transcript-action-btn" title="View">
+                              <Eye size={15} />
+                            </button>
+                            {req.status === 'ready' && (
+                              <button className="transcript-action-btn transcript-action-btn--download" title="Download">
+                                <Download size={15} />
+                              </button>
+                            )}
+                            {isRegistrarOrClerk && req.status === 'processing' && (
+                              <button
+                                className="transcript-action-btn transcript-action-btn--download"
+                                title="Mark Ready"
+                                onClick={() => handleStatusUpdate(req.id, 'ready', 'Ready for Pickup')}
+                              >
+                                <CheckCircle2 size={15} />
+                              </button>
+                            )}
+                            {isRegistrarOrClerk && req.status === 'ready' && (
+                              <button
+                                className="transcript-action-btn"
+                                title="Mark Collected"
+                                onClick={() => handleStatusUpdate(req.id, 'collected', 'Collected')}
+                              >
+                                <Package size={15} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -263,7 +374,7 @@ export default function TranscriptsPage() {
               <Download size={16} />
               Download PDF
             </button>
-            <button className="transcript-doc-btn transcript-doc-btn--request">
+            <button className="transcript-doc-btn transcript-doc-btn--request" onClick={handleRequestTranscript}>
               <Send size={16} />
               Request Official Copy
             </button>

@@ -58,20 +58,12 @@
   min-height: 68px;
 }
 
-.pu-sidebar__logo-monogram {
+.pu-sidebar__logo-img {
   width: 40px;
   height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-gold, #c9a96e), #d4b97c);
-  border-radius: 12px;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 800;
-  font-size: 1.1rem;
-  color: #1a1d27;
+  object-fit: contain;
+  border-radius: 10px;
   flex-shrink: 0;
-  letter-spacing: -0.5px;
 }
 
 .pu-sidebar__logo-text {

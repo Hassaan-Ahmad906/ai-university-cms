@@ -39,7 +39,7 @@ export default function AnnouncementsPage() {
           <p>Official notices from University of the Punjab</p>
         </div>
         {canCreate && (
-          <button className="ann-create-btn"><Plus size={16} /> New Announcement</button>
+          <button className="ann-create-btn" onClick={() => alert('New Announcement form — coming in next update')}><Plus size={16} /> New Announcement</button>
         )}
       </div>
 

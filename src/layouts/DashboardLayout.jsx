@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../components/common/Sidebar/Sidebar'
 import Topbar from '../components/common/Topbar/Topbar'
@@ -119,13 +119,39 @@ export default function DashboardLayout() {
     navigate('/login')
   }
 
+  // Proper role display names
+  const ROLE_LABELS = {
+    admin: 'Admin', vc: 'Vice Chancellor', dean: 'Dean', hod: 'HOD',
+    teacher: 'Teacher', student: 'Student', registrar: 'Registrar',
+    treasurer: 'Treasurer', clerk: 'Clerk', controller: 'Controller'
+  }
+
   // Build user object in the format Sidebar/Topbar expect
   const userForComponents = {
     name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User',
-    role: user?.role?.replace(/^\w/, c => c.toUpperCase()) || 'Student',
+    role: ROLE_LABELS[user?.role] || user?.role || 'Student',
     avatar: user?.avatar || null,
     email: user?.email || '',
   }
+
+  // Fetch unread notification count
+  const [notifCount, setNotifCount] = useState(0)
+  useEffect(() => {
+    const fetchNotifCount = async () => {
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        if (!token) return
+        const res = await fetch('http://localhost:5000/api/notifications', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setNotifCount(data.unreadCount || 0)
+        }
+      } catch { /* server offline */ }
+    }
+    fetchNotifCount()
+  }, [])
 
   return (
     <div className={`dashboard-layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
@@ -146,7 +172,7 @@ export default function DashboardLayout() {
           theme={theme}
           onThemeToggle={toggleTheme}
           onLogout={handleLogout}
-          notificationCount={5}
+          notificationCount={notifCount}
         />
         <main className="dashboard-content">
           <Outlet />

@@ -67,15 +67,17 @@ export default function AIChatWidget() {
 
       setMessages(prev => [...prev, { id: Date.now() + 1, text: aiText, sender: 'ai', time: new Date() }])
     } catch {
-      // Fallback mock responses
-      const mockResponses = [
-        "That's a great question! Let me think about it... Based on the course material, I'd recommend reviewing the key concepts in Chapter 5. Would you like me to break down the main topics?",
-        "I can help with that! Here's what I suggest:\n\n1. Start by reviewing the fundamentals\n2. Practice with sample problems\n3. Create summary notes for quick revision\n\nWould you like more specific guidance?",
-        "Based on your academic profile, I recommend focusing on algorithm complexity analysis. This is a high-yield topic for exams. Shall I generate some practice questions?",
-      ]
-      const random = mockResponses[Math.floor(Math.random() * mockResponses.length)]
-      await new Promise(r => setTimeout(r, 1200))
-      setMessages(prev => [...prev, { id: Date.now() + 1, text: random, sender: 'ai', time: new Date() }])
+      // Smart offline fallback
+      await new Promise(r => setTimeout(r, 800))
+      let fallback
+      if (role === 'student') {
+        fallback = "🎓 I'm here to help with your studies! Try asking about:\n• Course concepts (e.g., 'Explain binary search trees')\n• Exam tips (e.g., 'How to prepare for midterms')\n• Assignment help (e.g., 'Tips for AVL tree implementation')\n\nConnect to the server for full AI-powered responses!"
+      } else if (role === 'teacher') {
+        fallback = "📚 Teaching Assistant (Offline): I can help with grading rubrics, quiz generation, and lesson planning. Connect to the server for AI-powered assistance!"
+      } else {
+        fallback = `🏛️ ${aiName} (Offline): I can assist with analytics, reports, and workflow optimization. Connect to the server for full AI capabilities.`
+      }
+      setMessages(prev => [...prev, { id: Date.now() + 1, text: fallback, sender: 'ai', time: new Date() }])
     } finally {
       setIsTyping(false)
     }

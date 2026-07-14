@@ -69,7 +69,9 @@ function StudentFeeView() {
             <span>Due: <strong className="fee-due">₨ {summary.due.toLocaleString()}</strong></span>
           </div>
         </div>
-        <button className="fee-pay-btn"><CreditCard size={16} /> Pay Now — ₨ {summary.due.toLocaleString()}</button>
+        <button className="fee-pay-btn" onClick={() => alert('Online payment integration coming soon')}>
+          <CreditCard size={16} /> Pay Now — ₨ {summary.due.toLocaleString()}
+        </button>
       </div>
 
       {/* Installments */}
@@ -96,7 +98,9 @@ function StudentFeeView() {
                   <span className="fee-inst-badge" style={{ background: `${sc.color}20`, color: sc.color }}>{sc.label}</span>
                 </div>
                 {inst.status === 'paid' && (
-                  <button className="fee-inst-receipt" title="Download Receipt"><Download size={14} /></button>
+                  <button className="fee-inst-receipt" title="Download Receipt" onClick={() => alert('Receipt download coming soon')}>
+                    <Download size={14} />
+                  </button>
                 )}
               </div>
             )
@@ -165,7 +169,7 @@ function TreasurerFeeView() {
                     <td>₨ {row.amount.toLocaleString()}</td>
                     <td>{row.date}</td>
                     <td><span className="fee-table-badge" style={{ background: `${sc.color}20`, color: sc.color }}>{sc.label}</span></td>
-                    <td><button className="fee-table-action"><Eye size={14} /></button></td>
+                    <td><button className="fee-table-action" onClick={() => alert('Payment details view coming soon')}><Eye size={14} /></button></td>
                   </tr>
                 )
               })}

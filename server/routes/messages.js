@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import mongoose from 'mongoose'
 import Message from '../models/Message.js'
 import User from '../models/User.js'
 import { protect } from '../middleware/auth.js'
@@ -9,20 +10,22 @@ router.use(protect)
 // ── GET /api/messages/conversations ── List all conversations
 router.get('/conversations', async (req, res) => {
   try {
+    const userId = new mongoose.Types.ObjectId(req.user.id)
+
     // Get all unique users this user has messaged with
     const messages = await Message.aggregate([
-      { $match: { $or: [{ sender: req.user.id }, { receiver: req.user.id }] } },
+      { $match: { $or: [{ sender: userId }, { receiver: userId }] } },
       { $sort: { createdAt: -1 } },
       {
         $group: {
           _id: {
-            $cond: [{ $eq: ['$sender', req.user.id] }, '$receiver', '$sender']
+            $cond: [{ $eq: ['$sender', userId] }, '$receiver', '$sender']
           },
           lastMessage: { $first: '$text' },
           lastTime: { $first: '$createdAt' },
           unread: {
             $sum: {
-              $cond: [{ $and: [{ $eq: ['$receiver', req.user.id] }, { $eq: ['$read', false] }] }, 1, 0]
+              $cond: [{ $and: [{ $eq: ['$receiver', userId] }, { $eq: ['$read', false] }] }, 1, 0]
             }
           }
         }

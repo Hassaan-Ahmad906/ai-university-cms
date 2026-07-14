@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
 import puLogoDark from '../../assets/logo/pu-logo-dark.png'
@@ -8,7 +10,7 @@ import {
   GraduationCap, CreditCard, Brain, Shield, Settings,
   FileText, UserPlus, Send, Clock, AlertCircle, CheckCircle2,
   Activity, Server, Database, Zap, Building2, User,
-  Award, Calendar, ScrollText
+  Award, Calendar, ScrollText, Bell, MessageSquare
 } from 'lucide-react'
 import './DashboardHome.css'
 
@@ -23,8 +25,37 @@ function getGreeting() {
    STUDENT DASHBOARD
    ============================================================ */
 function StudentDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
+
+  const [aiInput, setAiInput] = useState('')
+  const [aiResponse, setAiResponse] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+
+  const handleAiAsk = async () => {
+    if (!aiInput.trim() || aiLoading) return
+    setAiLoading(true)
+    setAiResponse('')
+    try {
+      const token = localStorage.getItem('pu-lms-token')
+      const res = await fetch('http://localhost:5000/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: aiInput }),
+      })
+      if (!res.ok) throw new Error('Request failed')
+      const data = await res.json()
+      setAiResponse(data.reply || data.message || 'I received your question. Let me think about that...')
+    } catch {
+      setAiResponse('AI Study Buddy is currently unavailable. Please try again later or contact your instructor for help.')
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   const stats = [
     { label: 'Current CGPA', value: '3.72', icon: BarChart3, trend: '+0.15', trendUp: true, color: '#c9a96e' },
@@ -104,7 +135,7 @@ function StudentDashboard({ user, logo }) {
           </div>
           <div className="dash-deadlines">
             {deadlines.map((d, i) => (
-              <div key={i} className="dash-deadline-item">
+              <div key={i} className="dash-deadline-item" onClick={() => navigate('/assignments')} style={{ cursor: 'pointer' }}>
                 <div className={`dash-deadline-item__icon dash-deadline-item__icon--${d.iconType}`}>
                   {d.iconType === 'done' ? <CheckCircle2 size={18} /> : <ClipboardList size={18} />}
                 </div>
@@ -123,11 +154,11 @@ function StudentDashboard({ user, logo }) {
         <div className="dash-card">
           <div className="dash-card__header">
             <h3 className="dash-card__title"><FileText size={20} /> Announcements</h3>
-            <a className="dash-section-link">View all</a>
+            <a className="dash-section-link" onClick={() => navigate('/announcements')} style={{ cursor: 'pointer' }}>View all</a>
           </div>
           <div className="dash-announcements">
             {announcements.map((a, i) => (
-              <div key={i} className="dash-announcement-item">
+              <div key={i} className="dash-announcement-item" onClick={() => navigate('/announcements')} style={{ cursor: 'pointer' }}>
                 <div className="dash-announcement-item__date">{a.date}</div>
                 <div className="dash-announcement-item__title">{a.title}</div>
                 <div className="dash-announcement-item__preview">{a.preview}</div>
@@ -140,11 +171,11 @@ function StudentDashboard({ user, logo }) {
       {/* My Courses */}
       <div className="dash-section-header">
         <h2 className="dash-section-title"><BookOpen size={22} /> My Courses</h2>
-        <a className="dash-section-link">View all courses →</a>
+        <a className="dash-section-link" onClick={() => navigate('/courses')} style={{ cursor: 'pointer' }}>View all courses →</a>
       </div>
       <div className="dash-courses-grid">
         {courses.map((c, i) => (
-          <div key={i} className="dash-course-card">
+          <div key={i} className="dash-course-card" onClick={() => navigate('/courses')} style={{ cursor: 'pointer' }}>
             <div className={`dash-course-card__banner dash-course-card__banner--${c.banner}`} />
             <div className="dash-course-card__body">
               <div className="dash-course-card__code">{c.code}</div>
@@ -178,9 +209,27 @@ function StudentDashboard({ user, logo }) {
         </div>
         <p className="dash-ai-buddy__prompt">Ask me anything about your courses, assignments, or exam preparation...</p>
         <div className="dash-ai-buddy__input-row">
-          <input className="dash-ai-buddy__input" placeholder="Type your question..." />
-          <button className="dash-ai-buddy__send"><Send size={16} /></button>
+          <input
+            className="dash-ai-buddy__input"
+            placeholder="Type your question..."
+            value={aiInput}
+            onChange={(e) => setAiInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleAiAsk()}
+          />
+          <button
+            className="dash-ai-buddy__send"
+            onClick={handleAiAsk}
+            disabled={aiLoading || !aiInput.trim()}
+          >
+            <Send size={16} />
+          </button>
         </div>
+        {aiResponse && (
+          <div className="dash-ai-buddy__response" style={{ marginTop: '12px', padding: '12px 16px', background: 'var(--bg-secondary, #f5f5f5)', borderRadius: '8px', fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--text-primary, #333)' }}>
+            <MessageSquare size={14} style={{ marginRight: 6, verticalAlign: 'middle', opacity: 0.6 }} />
+            {aiResponse}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -190,16 +239,15 @@ function StudentDashboard({ user, logo }) {
    ADMIN DASHBOARD
    ============================================================ */
 function AdminDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
   const stats = [
-    { label: 'Total Students', value: '12,450', icon: GraduationCap, color: '#06b6d4' },
-    { label: 'Total Faculty', value: '890', icon: Users, color: '#8b5cf6' },
-    { label: 'Active Courses', value: '340', icon: BookOpen, color: '#5c6bc0' },
-    { label: 'Departments', value: '45', icon: Building2, color: '#10b981' },
-    { label: 'Revenue (Month)', value: '₨ 45.2M', icon: CreditCard, color: '#c9a96e' },
-    { label: 'AI Queries Today', value: '1,234', icon: Brain, color: '#f59e0b' },
+    { label: 'Total Users', value: '13,340', icon: Users, color: '#5c6bc0' },
+    { label: 'System Uptime', value: '99.97%', icon: Server, color: '#10b981' },
+    { label: 'DB Status', value: 'Connected', icon: Database, color: '#06b6d4' },
+    { label: 'CMS Version', value: 'v1.0.0', icon: Shield, color: '#c9a96e' },
   ]
 
   const timeline = [
@@ -210,19 +258,13 @@ function AdminDashboard({ user, logo }) {
     { time: '5 hours ago', content: '<strong>Controller of Examinations</strong> published mid-term date sheet for Fall 2026', highlight: false },
   ]
 
-  const departments = [
-    { name: 'Computer Science', value: 92, color: 'navy' },
-    { name: 'Mathematics', value: 78, color: 'gold' },
-    { name: 'Physics', value: 85, color: 'info' },
-    { name: 'English', value: 71, color: 'success' },
-    { name: 'Chemistry', value: 67, color: 'crimson' },
-  ]
-
   const quickActions = [
-    { icon: UserPlus, label: 'Add User' },
-    { icon: BookOpen, label: 'Create Course' },
-    { icon: BarChart3, label: 'View Reports' },
-    { icon: Settings, label: 'System Settings' },
+    { icon: Users, label: 'Manage Users', path: '/users' },
+    { icon: Calendar, label: 'Events Calendar', path: '/calendar' },
+    { icon: ScrollText, label: 'Announcements', path: '/announcements' },
+    { icon: CreditCard, label: 'Fee Overview', path: '/fees' },
+    { icon: Bell, label: 'Notifications', path: '/notifications' },
+    { icon: Settings, label: 'Settings', path: '/settings' },
   ]
 
   const healthItems = [
@@ -240,12 +282,12 @@ function AdminDashboard({ user, logo }) {
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Admin</span></h1>
-          <p className="dash-welcome__summary">University of the Punjab CMS — System Overview</p>
+          <p className="dash-welcome__summary">PU Campus Management System — Technical Overview</p>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="dash-stats-grid dash-stats-grid--6">
+      <div className="dash-stats-grid dash-stats-grid--4">
         {stats.map((stat, i) => {
           const Icon = stat.icon
           return (
@@ -260,7 +302,7 @@ function AdminDashboard({ user, logo }) {
         })}
       </div>
 
-      {/* Activity + Performance */}
+      {/* Activity + System Health */}
       <div className="dash-two-col">
         <div className="dash-card">
           <div className="dash-card__header">
@@ -274,47 +316,6 @@ function AdminDashboard({ user, logo }) {
                 <div className="dash-timeline-item__content" dangerouslySetInnerHTML={{ __html: item.content }} />
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="dash-card">
-          <div className="dash-card__header">
-            <h3 className="dash-card__title"><BarChart3 size={20} /> Department Performance</h3>
-          </div>
-          <div className="dash-bar-chart">
-            {departments.map((dept, i) => (
-              <div key={i} className="dash-bar-row">
-                <span className="dash-bar-row__label">{dept.name}</span>
-                <div className="dash-bar-row__track">
-                  <div
-                    className={`dash-bar-row__fill dash-bar-row__fill--${dept.color}`}
-                    style={{ width: `${dept.value}%`, animationDelay: `${i * 0.15}s` }}
-                  >
-                    {dept.value}%
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions + System Health */}
-      <div className="dash-two-col">
-        <div className="dash-card">
-          <div className="dash-card__header">
-            <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
-          </div>
-          <div className="dash-quick-actions">
-            {quickActions.map((action, i) => {
-              const Icon = action.icon
-              return (
-                <button key={i} className="dash-quick-action-btn">
-                  <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
-                  <span className="dash-quick-action-btn__label">{action.label}</span>
-                </button>
-              )
-            })}
           </div>
         </div>
 
@@ -335,6 +336,24 @@ function AdminDashboard({ user, logo }) {
           </div>
         </div>
       </div>
+
+      {/* Quick Actions */}
+      <div className="dash-card" style={{ marginBottom: 'var(--space-6)' }}>
+        <div className="dash-card__header">
+          <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
+        </div>
+        <div className="dash-quick-actions">
+          {quickActions.map((action, i) => {
+            const Icon = action.icon
+            return (
+              <button key={i} className="dash-quick-action-btn" onClick={() => navigate(action.path)}>
+                <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
+                <span className="dash-quick-action-btn__label">{action.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
     </div>
   )
 }
@@ -342,7 +361,8 @@ function AdminDashboard({ user, logo }) {
 /* ============================================================
    TEACHER DASHBOARD
    ============================================================ */
-function TeacherDashboard({ user }) {
+function TeacherDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -366,9 +386,17 @@ function TeacherDashboard({ user }) {
     { student: 'Sara Malik', assignment: 'OOP Lab Report', course: 'CS-205', time: '2 hours ago' },
   ]
 
+  const quickActions = [
+    { icon: ClipboardList, label: 'Create Assignment', path: '/assignments' },
+    { icon: FileText, label: 'Grade Submissions', path: '/gradebook' },
+    { icon: CalendarClock, label: 'Mark Attendance', path: '/attendance' },
+    { icon: Brain, label: 'AI Auto-Grade', path: '/gradebook' },
+  ]
+
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>{user?.firstName || 'Professor'}</span></h1>
@@ -443,15 +471,10 @@ function TeacherDashboard({ user }) {
           <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
         </div>
         <div className="dash-quick-actions">
-          {[
-            { icon: ClipboardList, label: 'Create Assignment' },
-            { icon: FileText, label: 'Grade Submissions' },
-            { icon: CalendarClock, label: 'Mark Attendance' },
-            { icon: Brain, label: 'AI Auto-Grade' },
-          ].map((action, i) => {
+          {quickActions.map((action, i) => {
             const Icon = action.icon
             return (
-              <button key={i} className="dash-quick-action-btn">
+              <button key={i} className="dash-quick-action-btn" onClick={() => navigate(action.path)}>
                 <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
                 <span className="dash-quick-action-btn__label">{action.label}</span>
               </button>
@@ -466,7 +489,8 @@ function TeacherDashboard({ user }) {
 /* ============================================================
    HOD DASHBOARD
    ============================================================ */
-function HodDashboard({ user }) {
+function HodDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -484,9 +508,17 @@ function HodDashboard({ user }) {
     { name: 'Dr. Ahmad Khan', courses: 3, rating: 85, color: 'success' },
   ]
 
+  const quickActions = [
+    { icon: Users, label: 'Assign Courses', path: '/courses' },
+    { icon: Calendar, label: 'Manage Timetable', path: '/timetable' },
+    { icon: BarChart3, label: 'View Reports', path: '/gradebook' },
+    { icon: Brain, label: 'AI Workload', path: '/dashboard' },
+  ]
+
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>{user?.firstName || 'HOD'}</span></h1>
@@ -538,15 +570,10 @@ function HodDashboard({ user }) {
             <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
           </div>
           <div className="dash-quick-actions">
-            {[
-              { icon: Users, label: 'Assign Courses' },
-              { icon: Calendar, label: 'Manage Timetable' },
-              { icon: BarChart3, label: 'View Reports' },
-              { icon: Brain, label: 'AI Workload' },
-            ].map((action, i) => {
+            {quickActions.map((action, i) => {
               const Icon = action.icon
               return (
-                <button key={i} className="dash-quick-action-btn">
+                <button key={i} className="dash-quick-action-btn" onClick={() => navigate(action.path)}>
                   <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
                   <span className="dash-quick-action-btn__label">{action.label}</span>
                 </button>
@@ -562,7 +589,8 @@ function HodDashboard({ user }) {
 /* ============================================================
    VC DASHBOARD
    ============================================================ */
-function VcDashboard({ user }) {
+function VcDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -585,6 +613,7 @@ function VcDashboard({ user }) {
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Vice Chancellor</span></h1>
@@ -620,7 +649,7 @@ function VcDashboard({ user }) {
           </div>
           <div className="dash-deadlines">
             {pendingApprovals.map((item, i) => (
-              <div key={i} className="dash-deadline-item">
+              <div key={i} className="dash-deadline-item" onClick={() => navigate('/announcements')} style={{ cursor: 'pointer' }}>
                 <div className={`dash-deadline-item__icon dash-deadline-item__icon--${item.priority === 'urgent' ? 'urgent' : 'normal'}`}>
                   <FileText size={18} />
                 </div>
@@ -667,7 +696,8 @@ function VcDashboard({ user }) {
 /* ============================================================
    DEAN DASHBOARD
    ============================================================ */
-function DeanDashboard({ user }) {
+function DeanDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -678,9 +708,17 @@ function DeanDashboard({ user }) {
     { label: 'Student Satisfaction', value: '88%', icon: TrendingUp, trend: '+4%', trendUp: true, color: '#4caf50' },
   ]
 
+  const quickActions = [
+    { icon: Users, label: 'Review Faculty', path: '/courses' },
+    { icon: Award, label: 'Programs', path: '/courses' },
+    { icon: BarChart3, label: 'Reports', path: '/gradebook' },
+    { icon: Brain, label: 'AI Analytics', path: '/dashboard' },
+  ]
+
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Dean</span></h1>
@@ -736,15 +774,10 @@ function DeanDashboard({ user }) {
             <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
           </div>
           <div className="dash-quick-actions">
-            {[
-              { icon: Users, label: 'Review Faculty' },
-              { icon: Award, label: 'Programs' },
-              { icon: BarChart3, label: 'Reports' },
-              { icon: Brain, label: 'AI Analytics' },
-            ].map((action, i) => {
+            {quickActions.map((action, i) => {
               const Icon = action.icon
               return (
-                <button key={i} className="dash-quick-action-btn">
+                <button key={i} className="dash-quick-action-btn" onClick={() => navigate(action.path)}>
                   <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
                   <span className="dash-quick-action-btn__label">{action.label}</span>
                 </button>
@@ -760,7 +793,8 @@ function DeanDashboard({ user }) {
 /* ============================================================
    REGISTRAR DASHBOARD
    ============================================================ */
-function RegistrarDashboard({ user }) {
+function RegistrarDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -778,9 +812,16 @@ function RegistrarDashboard({ user }) {
     { type: 'Enrollment Letter', student: 'Fatima Zahra (CS-2023-067)', status: 'Completed', time: '3 hours ago' },
   ]
 
+  const quickActions = [
+    { icon: ScrollText, label: 'Transcripts', path: '/transcripts' },
+    { icon: FileText, label: 'Announcements', path: '/announcements' },
+    { icon: Calendar, label: 'Calendar', path: '/calendar' },
+  ]
+
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Registrar</span></h1>
@@ -806,25 +847,44 @@ function RegistrarDashboard({ user }) {
         })}
       </div>
 
-      <div className="dash-card" style={{ marginBottom: 'var(--space-6)' }}>
-        <div className="dash-card__header">
-          <h3 className="dash-card__title"><Activity size={20} /> Recent Requests</h3>
+      <div className="dash-two-col">
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Activity size={20} /> Recent Requests</h3>
+          </div>
+          <div className="dash-deadlines">
+            {recentRequests.map((req, i) => (
+              <div key={i} className="dash-deadline-item">
+                <div className={`dash-deadline-item__icon dash-deadline-item__icon--${req.status === 'Ready' ? 'done' : req.status === 'Processing' ? 'warning' : 'normal'}`}>
+                  <FileText size={18} />
+                </div>
+                <div className="dash-deadline-item__info">
+                  <div className="dash-deadline-item__title">{req.type}</div>
+                  <div className="dash-deadline-item__meta">{req.student} • {req.time}</div>
+                </div>
+                <span className={`dash-deadline-item__status dash-deadline-item__status--${req.status === 'Ready' ? 'submitted' : req.status === 'Processing' ? 'due-soon' : req.status === 'Completed' ? 'submitted' : 'upcoming'}`}>
+                  {req.status}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="dash-deadlines">
-          {recentRequests.map((req, i) => (
-            <div key={i} className="dash-deadline-item">
-              <div className={`dash-deadline-item__icon dash-deadline-item__icon--${req.status === 'Ready' ? 'done' : req.status === 'Processing' ? 'warning' : 'normal'}`}>
-                <FileText size={18} />
-              </div>
-              <div className="dash-deadline-item__info">
-                <div className="dash-deadline-item__title">{req.type}</div>
-                <div className="dash-deadline-item__meta">{req.student} • {req.time}</div>
-              </div>
-              <span className={`dash-deadline-item__status dash-deadline-item__status--${req.status === 'Ready' ? 'submitted' : req.status === 'Processing' ? 'due-soon' : req.status === 'Completed' ? 'submitted' : 'upcoming'}`}>
-                {req.status}
-              </span>
-            </div>
-          ))}
+
+        <div className="dash-card">
+          <div className="dash-card__header">
+            <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
+          </div>
+          <div className="dash-quick-actions">
+            {quickActions.map((action, i) => {
+              const Icon = action.icon
+              return (
+                <button key={i} className="dash-quick-action-btn" onClick={() => navigate(action.path)}>
+                  <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
+                  <span className="dash-quick-action-btn__label">{action.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -834,7 +894,8 @@ function RegistrarDashboard({ user }) {
 /* ============================================================
    TREASURER DASHBOARD
    ============================================================ */
-function TreasurerDashboard({ user }) {
+function TreasurerDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -845,9 +906,17 @@ function TreasurerDashboard({ user }) {
     { label: 'Default Rate', value: '3.2%', icon: TrendingDown, trend: '-0.8%', trendUp: true, color: '#4caf50' },
   ]
 
+  const quickActions = [
+    { icon: CreditCard, label: 'Fee Structure', path: '/fees' },
+    { icon: Award, label: 'Scholarships', path: '/fees' },
+    { icon: BarChart3, label: 'Financial Report', path: '/fees' },
+    { icon: FileText, label: 'Budget Plan', path: '/fees' },
+  ]
+
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>Treasurer</span></h1>
@@ -903,15 +972,10 @@ function TreasurerDashboard({ user }) {
             <h3 className="dash-card__title"><Zap size={20} /> Quick Actions</h3>
           </div>
           <div className="dash-quick-actions">
-            {[
-              { icon: CreditCard, label: 'Fee Structure' },
-              { icon: Award, label: 'Scholarships' },
-              { icon: BarChart3, label: 'Financial Report' },
-              { icon: FileText, label: 'Budget Plan' },
-            ].map((action, i) => {
+            {quickActions.map((action, i) => {
               const Icon = action.icon
               return (
-                <button key={i} className="dash-quick-action-btn">
+                <button key={i} className="dash-quick-action-btn" onClick={() => navigate(action.path)}>
                   <div className="dash-quick-action-btn__icon"><Icon size={22} /></div>
                   <span className="dash-quick-action-btn__label">{action.label}</span>
                 </button>
@@ -927,7 +991,8 @@ function TreasurerDashboard({ user }) {
 /* ============================================================
    CLERK DASHBOARD
    ============================================================ */
-function ClerkDashboard({ user }) {
+function ClerkDashboard({ user, logo }) {
+  const navigate = useNavigate()
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
@@ -948,6 +1013,7 @@ function ClerkDashboard({ user }) {
   return (
     <div className="dash-home">
       <div className="dash-welcome">
+        <img src={logo} alt="University of the Punjab" className="dash-welcome__logo" />
         <div className="dash-welcome__content">
           <p className="dash-welcome__greeting"><GreetIcon size={18} /> {greeting.text}</p>
           <h1 className="dash-welcome__name">Welcome, <span>{user?.firstName || 'Staff'}</span></h1>
@@ -977,7 +1043,7 @@ function ClerkDashboard({ user }) {
         </div>
         <div className="dash-deadlines">
           {documentQueue.map((doc, i) => (
-            <div key={i} className="dash-deadline-item">
+            <div key={i} className="dash-deadline-item" onClick={() => navigate('/transcripts')} style={{ cursor: 'pointer' }}>
               <div className={`dash-deadline-item__icon dash-deadline-item__icon--${doc.priority === 'High' ? 'urgent' : doc.priority === 'Normal' ? 'warning' : 'normal'}`}>
                 <FileText size={18} />
               </div>
@@ -1002,8 +1068,8 @@ function ClerkDashboard({ user }) {
 export default function DashboardHome() {
   const { user } = useAuth()
   const { theme } = useTheme()
-  const logo = theme === 'dark' ? puLogoDark : puLogoLight
   const role = user?.role || 'student'
+  const logo = theme === 'dark' ? puLogoDark : puLogoLight
 
   switch (role) {
     case 'student':
@@ -1011,19 +1077,21 @@ export default function DashboardHome() {
     case 'admin':
       return <AdminDashboard user={user} logo={logo} />
     case 'teacher':
-      return <TeacherDashboard user={user} />
+      return <TeacherDashboard user={user} logo={logo} />
     case 'hod':
-      return <HodDashboard user={user} />
+      return <HodDashboard user={user} logo={logo} />
     case 'vc':
-      return <VcDashboard user={user} />
+      return <VcDashboard user={user} logo={logo} />
     case 'dean':
-      return <DeanDashboard user={user} />
+      return <DeanDashboard user={user} logo={logo} />
     case 'registrar':
-      return <RegistrarDashboard user={user} />
+      return <RegistrarDashboard user={user} logo={logo} />
     case 'treasurer':
-      return <TreasurerDashboard user={user} />
+      return <TreasurerDashboard user={user} logo={logo} />
     case 'clerk':
-      return <ClerkDashboard user={user} />
+      return <ClerkDashboard user={user} logo={logo} />
+    case 'controller':
+      return <RolePlaceholder role={role} />
     default:
       return <RolePlaceholder role={role} />
   }
@@ -1042,4 +1110,3 @@ function RolePlaceholder({ role }) {
     </div>
   )
 }
-

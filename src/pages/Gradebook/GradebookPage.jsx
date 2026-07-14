@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   BookOpen, Download, BarChart3, TrendingUp, TrendingDown,
@@ -7,21 +7,23 @@ import {
 } from 'lucide-react'
 import './GradebookPage.css'
 
+const API_BASE = 'http://localhost:5000/api'
+
 const COURSES = [
-  'CS-301 Data Structures & Algorithms',
-  'CS-401 Artificial Intelligence',
-  'CS-302 Database Systems',
-  'MATH-201 Linear Algebra',
+  { id: 'cs301', label: 'CS-301 Data Structures & Algorithms' },
+  { id: 'cs401', label: 'CS-401 Artificial Intelligence' },
+  { id: 'cs302', label: 'CS-302 Database Systems' },
+  { id: 'math201', label: 'MATH-201 Linear Algebra' },
 ]
 
-const SUMMARY = [
+const HARDCODED_SUMMARY = [
   { label: 'Class Average', value: '76.4%', icon: BarChart3, color: '#5c6bc0', trend: '+2.1%' },
   { label: 'Highest Score', value: '95%', icon: TrendingUp, color: '#4caf50', trend: null },
   { label: 'Lowest Score', value: '42%', icon: TrendingDown, color: '#ef5350', trend: null },
   { label: 'Total Students', value: '45', icon: Users, color: '#c9a96e', trend: null },
 ]
 
-const DISTRIBUTION = [
+const HARDCODED_DISTRIBUTION = [
   { grade: 'A', count: 8, color: '#4caf50', label: 'A (80-100)' },
   { grade: 'B', count: 15, color: '#66bb6a', label: 'B (70-79)' },
   { grade: 'C', count: 12, color: '#ffb74d', label: 'C (60-69)' },
@@ -50,7 +52,7 @@ function getScoreClass(score) {
   return 'gradebook-score--fail'
 }
 
-const STUDENTS = [
+const HARDCODED_STUDENTS = [
   { name: 'Ahmed Hassan', roll: 'CS-2026-001', a1: 88, a2: 92, q1: 85, mid: 78, total: 86, initials: 'AH' },
   { name: 'Fatima Zahra', roll: 'CS-2026-004', a1: 95, a2: 90, q1: 92, mid: 88, total: 91, initials: 'FZ' },
   { name: 'Muhammad Ali', roll: 'CS-2026-007', a1: 72, a2: 68, q1: 75, mid: 70, total: 71, initials: 'MA' },
@@ -63,8 +65,44 @@ const STUDENTS = [
 
 export default function GradebookPage() {
   const { user } = useAuth()
-  const [selectedCourse, setSelectedCourse] = useState(COURSES[0])
-  const maxCount = Math.max(...DISTRIBUTION.map(d => d.count))
+  const [selectedCourseId, setSelectedCourseId] = useState(COURSES[0].id)
+  const [students, setStudents] = useState(HARDCODED_STUDENTS)
+  const [summary, setSummary] = useState(HARDCODED_SUMMARY)
+  const [distribution, setDistribution] = useState(HARDCODED_DISTRIBUTION)
+
+  useEffect(() => {
+    const fetchGrades = async () => {
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        const res = await fetch(`${API_BASE}/grades?course=${selectedCourseId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (data?.students && Array.isArray(data.students)) {
+            setStudents(data.students)
+          }
+          if (data?.summary && Array.isArray(data.summary)) {
+            setSummary(data.summary.map((s, i) => ({
+              ...HARDCODED_SUMMARY[i],
+              ...s,
+            })))
+          }
+          if (data?.distribution && Array.isArray(data.distribution)) {
+            setDistribution(data.distribution)
+          }
+        }
+      } catch {
+        // API unreachable — keep hardcoded data
+        setStudents(HARDCODED_STUDENTS)
+        setSummary(HARDCODED_SUMMARY)
+        setDistribution(HARDCODED_DISTRIBUTION)
+      }
+    }
+    fetchGrades()
+  }, [selectedCourseId])
+
+  const maxCount = Math.max(...distribution.map(d => d.count))
 
   return (
     <div className="gradebook-page">
@@ -82,15 +120,15 @@ export default function GradebookPage() {
         <div className="gradebook-header__right">
           <div className="gradebook-select-wrapper">
             <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
+              value={selectedCourseId}
+              onChange={(e) => setSelectedCourseId(e.target.value)}
               className="gradebook-select"
             >
-              {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+              {COURSES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
             <ChevronDown size={14} className="gradebook-select__chevron" />
           </div>
-          <button className="gradebook-export-btn">
+          <button className="gradebook-export-btn" onClick={() => alert('Export feature coming soon')}>
             <Download size={16} />
             <span>Export</span>
           </button>
@@ -99,8 +137,8 @@ export default function GradebookPage() {
 
       {/* Summary Cards */}
       <div className="gradebook-summary">
-        {SUMMARY.map((s, i) => {
-          const Icon = s.icon
+        {summary.map((s, i) => {
+          const Icon = s.icon || BarChart3
           return (
             <div key={i} className="gradebook-summary-card" style={{ '--stat-color': s.color, '--stagger': i }}>
               <div className="gradebook-summary-card__icon">
@@ -127,7 +165,7 @@ export default function GradebookPage() {
           Grade Distribution
         </h3>
         <div className="gradebook-distribution__chart">
-          {DISTRIBUTION.map((d, i) => (
+          {distribution.map((d, i) => (
             <div key={d.grade} className="gradebook-dist-bar" style={{ '--stagger': i }}>
               <span className="gradebook-dist-bar__label">{d.label}</span>
               <div className="gradebook-dist-bar__track">
@@ -164,7 +202,7 @@ export default function GradebookPage() {
               </tr>
             </thead>
             <tbody>
-              {STUDENTS.map((student, i) => {
+              {students.map((student, i) => {
                 const grade = getLetterGrade(student.total)
                 return (
                   <tr key={student.roll} className="gradebook-row" style={{ '--stagger': i }}>
@@ -208,18 +246,13 @@ export default function GradebookPage() {
       {/* Footer / Pagination */}
       <div className="gradebook-footer">
         <span className="gradebook-footer__info">
-          Showing <strong>1–8</strong> of <strong>45</strong> students
+          Showing <strong>1–{students.length}</strong> of <strong>{students.length}</strong> students
         </span>
         <div className="gradebook-pagination">
           <button className="gradebook-page-btn" disabled>
             <ChevronLeft size={16} />
           </button>
           <button className="gradebook-page-btn gradebook-page-btn--active">1</button>
-          <button className="gradebook-page-btn">2</button>
-          <button className="gradebook-page-btn">3</button>
-          <button className="gradebook-page-btn">4</button>
-          <button className="gradebook-page-btn">5</button>
-          <button className="gradebook-page-btn">6</button>
           <button className="gradebook-page-btn">
             <ChevronRight size={16} />
           </button>

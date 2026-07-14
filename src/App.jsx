@@ -24,6 +24,8 @@ import AnnouncementsPage from './pages/Announcements/AnnouncementsPage'
 import ExamsPage from './pages/Exams/ExamsPage'
 import NotFoundPage from './pages/NotFound/NotFoundPage'
 
+/* ── Auth Guards ── */
+
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth()
   
@@ -52,56 +54,19 @@ function PublicRoute({ children }) {
   return children
 }
 
-function AppRoutes() {
-  return (
-    <Routes>
-      <Route path="/login" element={
-        <PublicRoute>
-          <LoginPage />
-        </PublicRoute>
-      } />
-      
-      <Route path="/" element={
-        <ProtectedRoute>
-          <DashboardLayout />
-        </ProtectedRoute>
-      }>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route path="dashboard" element={<DashboardHome />} />
-        
-        {/* Shared */}
-        <Route path="courses" element={<CoursesPage />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="users/*" element={<UsersPage />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="notifications" element={<NotificationsPage />} />
-        <Route path="messages" element={<MessagesPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-        <Route path="fees" element={<FeesPage />} />
-        <Route path="calendar" element={<CalendarPage />} />
-        <Route path="announcements" element={<AnnouncementsPage />} />
-        <Route path="exams" element={<ExamsPage />} />
-        <Route path="quizzes" element={<ExamsPage />} />
-        
-        {/* Teacher */}
-        <Route path="assignments" element={<AssignmentsPage />} />
-        <Route path="gradebook" element={<GradebookPage />} />
-        <Route path="attendance" element={<AttendancePage />} />
-        
-        {/* Student */}
-        <Route path="grades" element={<GradesPage />} />
-        <Route path="timetable" element={<TimetablePage />} />
-        <Route path="schedule" element={<TimetablePage />} />
-        <Route path="transcripts" element={<TranscriptsPage />} />
-        
-        {/* Catch-all for unbuilt pages */}
-        <Route path="*" element={<PlaceholderPage />} />
-      </Route>
-
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
-  )
+/**
+ * Role-based route guard — restricts page access by user role.
+ * If the user's role is not in the allowed list, redirect to /dashboard.
+ */
+function RoleRoute({ allowed, children }) {
+  const { user } = useAuth()
+  if (!user || !allowed.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />
+  }
+  return children
 }
+
+/* ── Placeholder for pages not yet built ── */
 
 function PlaceholderPage() {
   return (
@@ -120,6 +85,121 @@ function PlaceholderPage() {
         This feature is under development and will be available in the next update.
       </p>
     </div>
+  )
+}
+
+/* ── Routes ── */
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={
+        <PublicRoute>
+          <LoginPage />
+        </PublicRoute>
+      } />
+      
+      <Route path="/" element={
+        <ProtectedRoute>
+          <DashboardLayout />
+        </ProtectedRoute>
+      }>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardHome />} />
+        
+        {/* ── Shared (all authenticated roles) ── */}
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="messages" element={<MessagesPage />} />
+        <Route path="settings" element={<SettingsPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+
+        {/* ── Courses — visible to student, teacher, hod, dean, admin ── */}
+        <Route path="courses" element={
+          <RoleRoute allowed={['student', 'teacher', 'hod', 'dean', 'admin']}>
+            <CoursesPage />
+          </RoleRoute>
+        } />
+
+        {/* ── Assignments — student (view/submit), teacher (create/grade), hod, admin ── */}
+        <Route path="assignments" element={
+          <RoleRoute allowed={['student', 'teacher', 'hod', 'admin']}>
+            <AssignmentsPage />
+          </RoleRoute>
+        } />
+
+        {/* ── Exams — student, teacher, hod, controller, admin ── */}
+        <Route path="exams" element={
+          <RoleRoute allowed={['student', 'teacher', 'hod', 'controller', 'admin']}>
+            <ExamsPage />
+          </RoleRoute>
+        } />
+        <Route path="quizzes" element={
+          <RoleRoute allowed={['student', 'teacher', 'hod', 'controller', 'admin']}>
+            <ExamsPage />
+          </RoleRoute>
+        } />
+
+        {/* ── Teacher-specific pages ── */}
+        <Route path="gradebook" element={
+          <RoleRoute allowed={['teacher', 'hod', 'admin']}>
+            <GradebookPage />
+          </RoleRoute>
+        } />
+        <Route path="attendance" element={
+          <RoleRoute allowed={['teacher', 'hod', 'admin']}>
+            <AttendancePage />
+          </RoleRoute>
+        } />
+
+        {/* ── Student-specific pages ── */}
+        <Route path="grades" element={
+          <RoleRoute allowed={['student']}>
+            <GradesPage />
+          </RoleRoute>
+        } />
+        <Route path="timetable" element={
+          <RoleRoute allowed={['student', 'teacher', 'hod']}>
+            <TimetablePage />
+          </RoleRoute>
+        } />
+        <Route path="schedule" element={
+          <RoleRoute allowed={['student', 'teacher', 'hod']}>
+            <TimetablePage />
+          </RoleRoute>
+        } />
+        <Route path="transcripts" element={
+          <RoleRoute allowed={['student', 'registrar', 'clerk', 'admin']}>
+            <TranscriptsPage />
+          </RoleRoute>
+        } />
+
+        {/* ── Fee Management — student, treasurer, admin ── */}
+        <Route path="fees" element={
+          <RoleRoute allowed={['student', 'treasurer', 'admin']}>
+            <FeesPage />
+          </RoleRoute>
+        } />
+
+        {/* ── Admin-only: User Management ── */}
+        <Route path="users" element={
+          <RoleRoute allowed={['admin']}>
+            <UsersPage />
+          </RoleRoute>
+        } />
+        <Route path="users/*" element={
+          <RoleRoute allowed={['admin']}>
+            <UsersPage />
+          </RoleRoute>
+        } />
+        
+        {/* Catch-all for unbuilt pages */}
+        <Route path="*" element={<PlaceholderPage />} />
+      </Route>
+
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   )
 }
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import {
   CalendarClock, Calendar, ChevronDown, Users, TrendingUp,
@@ -6,11 +6,13 @@ import {
 } from 'lucide-react'
 import './AttendancePage.css'
 
+const API_BASE = 'http://localhost:5000/api'
+
 const COURSES = [
-  'CS-301 Data Structures & Algorithms',
-  'CS-401 Artificial Intelligence',
-  'CS-302 Database Systems',
-  'MATH-201 Linear Algebra',
+  { id: 'cs301', label: 'CS-301 Data Structures & Algorithms' },
+  { id: 'cs401', label: 'CS-401 Artificial Intelligence' },
+  { id: 'cs302', label: 'CS-302 Database Systems' },
+  { id: 'math201', label: 'MATH-201 Linear Algebra' },
 ]
 
 const STATS = [
@@ -46,10 +48,124 @@ function getInitials(name) {
   return name.split(' ').slice(0, 2).map(w => w[0]).join('')
 }
 
+function StudentAttendanceView() {
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      try {
+        const token = localStorage.getItem('pu-lms-token')
+        const res = await fetch(`${API_BASE}/attendance/student`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (res.ok) {
+          const data = await res.json()
+          setStats(data)
+        }
+      } catch {
+        // API unreachable — use fallback
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAttendance()
+  }, [])
+
+  const fallbackStats = {
+    totalClasses: 42,
+    present: 36,
+    absent: 4,
+    late: 2,
+    percentage: 85.7,
+  }
+
+  const data = stats || fallbackStats
+
+  return (
+    <>
+      {/* Overall Stats */}
+      <div className="attend-stats">
+        <div className="attend-stat-card" style={{ '--stat-color': '#4caf50', '--stagger': 0 }}>
+          <div className="attend-stat-card__icon"><UserCheck size={20} /></div>
+          <div className="attend-stat-card__info">
+            <span className="attend-stat-card__value">{data.percentage?.toFixed?.(1) ?? data.percentage}%</span>
+            <span className="attend-stat-card__label">Overall Attendance</span>
+          </div>
+          <div className="attend-stat-card__ring">
+            <svg viewBox="0 0 36 36" className="attend-stat-card__svg">
+              <path className="attend-stat-card__ring-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+              <path className="attend-stat-card__ring-fill" strokeDasharray={`${data.percentage}, 100`} d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style={{ stroke: '#4caf50' }} />
+            </svg>
+          </div>
+        </div>
+        <div className="attend-stat-card" style={{ '--stat-color': '#5c6bc0', '--stagger': 1 }}>
+          <div className="attend-stat-card__icon"><BookOpen size={20} /></div>
+          <div className="attend-stat-card__info">
+            <span className="attend-stat-card__value">{data.present}/{data.totalClasses}</span>
+            <span className="attend-stat-card__label">Classes Attended</span>
+          </div>
+        </div>
+        <div className="attend-stat-card" style={{ '--stat-color': '#ef5350', '--stagger': 2 }}>
+          <div className="attend-stat-card__icon"><UserX size={20} /></div>
+          <div className="attend-stat-card__info">
+            <span className="attend-stat-card__value">{data.absent}</span>
+            <span className="attend-stat-card__label">Absences</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Week Calendar */}
+      <div className="attend-calendar">
+        <h3 className="attend-calendar__title">
+          <Calendar size={16} />
+          This Week — June 16 – 22, 2026
+        </h3>
+        <div className="attend-calendar__grid">
+          {WEEK_DAYS.map((d, i) => (
+            <div
+              key={d.day}
+              className={`attend-cal-day attend-cal-day--${d.status}`}
+              style={{ '--stagger': i }}
+            >
+              <span className="attend-cal-day__name">{d.day}</span>
+              <span className="attend-cal-day__date">{d.date}</span>
+              <div className="attend-cal-day__dot" />
+              {d.label && <span className="attend-cal-day__label">{d.label}</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="attend-summary">
+        <div className="attend-summary__item attend-summary__item--present">
+          <UserCheck size={16} />
+          <span>Present: <strong>{data.present}</strong></span>
+        </div>
+        <div className="attend-summary__item attend-summary__item--absent">
+          <UserX size={16} />
+          <span>Absent: <strong>{data.absent}</strong></span>
+        </div>
+        <div className="attend-summary__item attend-summary__item--late">
+          <Clock size={16} />
+          <span>Late: <strong>{data.late}</strong></span>
+        </div>
+      </div>
+
+      {loading && <p style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>Loading attendance data...</p>}
+    </>
+  )
+}
+
 export default function AttendancePage() {
   const { user } = useAuth()
-  const [selectedCourse, setSelectedCourse] = useState(COURSES[0])
+  const [selectedCourseId, setSelectedCourseId] = useState(COURSES[0].id)
   const [students, setStudents] = useState(INITIAL_STUDENTS)
+  const [saveMessage, setSaveMessage] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  const selectedCourse = COURSES.find(c => c.id === selectedCourseId)
 
   const toggleStatus = (id, newStatus) => {
     setStudents(prev =>
@@ -57,10 +173,68 @@ export default function AttendancePage() {
     )
   }
 
+  const handleSaveAttendance = async () => {
+    setSaving(true)
+    setSaveMessage(null)
+    try {
+      const token = localStorage.getItem('pu-lms-token')
+      const today = new Date().toISOString().split('T')[0]
+      const res = await fetch(`${API_BASE}/attendance`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          course: selectedCourseId,
+          date: today,
+          records: students.map(s => ({ student: s.id, status: s.status })),
+        }),
+      })
+      if (res.ok) {
+        setSaveMessage({ type: 'success', text: 'Attendance saved successfully!' })
+      } else {
+        const data = await res.json().catch(() => null)
+        setSaveMessage({ type: 'error', text: data?.message || 'Failed to save attendance.' })
+      }
+    } catch {
+      setSaveMessage({ type: 'error', text: 'Server unreachable. Please try again later.' })
+    } finally {
+      setSaving(false)
+      setTimeout(() => setSaveMessage(null), 5000)
+    }
+  }
+
   const presentCount = students.filter(s => s.status === 'present').length
   const absentCount = students.filter(s => s.status === 'absent').length
   const lateCount = students.filter(s => s.status === 'late').length
 
+  // Student role: show read-only view
+  if (user?.role === 'student') {
+    return (
+      <div className="attend-page">
+        <div className="attend-header">
+          <div className="attend-header__left">
+            <div className="attend-header__icon"><CalendarClock size={24} /></div>
+            <div>
+              <h1 className="attend-header__title">My Attendance</h1>
+              <p className="attend-header__subtitle">View your attendance records</p>
+            </div>
+          </div>
+          <div className="attend-header__right">
+            <div className="attend-date-display">
+              <Calendar size={16} />
+              <span>June 22, 2026</span>
+              <span className="attend-date-display__badge">Today</span>
+            </div>
+          </div>
+        </div>
+        <StudentAttendanceView />
+      </div>
+    )
+  }
+
+  // Teacher / Admin: marking interface
   return (
     <div className="attend-page">
       {/* Header */}
@@ -82,11 +256,11 @@ export default function AttendancePage() {
           </div>
           <div className="attend-select-wrapper">
             <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
+              value={selectedCourseId}
+              onChange={(e) => setSelectedCourseId(e.target.value)}
               className="attend-select"
             >
-              {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
+              {COURSES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
             <ChevronDown size={14} className="attend-select__chevron" />
           </div>
@@ -216,11 +390,23 @@ export default function AttendancePage() {
           </div>
         </div>
 
+        {/* Save Message */}
+        {saveMessage && (
+          <div className={`attend-save-message attend-save-message--${saveMessage.type}`} style={{
+            padding: '10px 16px', margin: '12px 0', borderRadius: 8, textAlign: 'center', fontWeight: 500,
+            background: saveMessage.type === 'success' ? '#e8f5e9' : '#ffebee',
+            color: saveMessage.type === 'success' ? '#2e7d32' : '#c62828',
+          }}>
+            <AlertCircle size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+            {saveMessage.text}
+          </div>
+        )}
+
         {/* Save Button */}
         <div className="attend-save-section">
-          <button className="attend-save-btn">
+          <button className="attend-save-btn" onClick={handleSaveAttendance} disabled={saving}>
             <Save size={18} />
-            <span>Save Attendance</span>
+            <span>{saving ? 'Saving...' : 'Save Attendance'}</span>
           </button>
         </div>
       </div>
