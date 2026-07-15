@@ -49,7 +49,7 @@ function StudentDashboard({ user, logo }) {
       })
       if (!res.ok) throw new Error('Request failed')
       const data = await res.json()
-      setAiResponse(data.reply || data.message || 'I received your question. Let me think about that...')
+      setAiResponse(data.response || data.reply || 'I received your question. Let me think about that...')
     } catch {
       setAiResponse('AI Study Buddy is currently unavailable. Please try again later or contact your instructor for help.')
     } finally {
