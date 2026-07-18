@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Clock, MapPin, Users, Plus, BookOpen, Award, Megaphone, PartyPopper } from 'lucide-react'
+import { useAuth } from '../../contexts/AuthContext'
 import './CalendarPage.css'
 
 const EVENT_TYPES = {
@@ -28,21 +29,38 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 5, 28)) // June 28, 2026
-  const [selectedDate, setSelectedDate] = useState('2026-06-28')
+  const { user } = useAuth()
+  const role = user?.role || 'student'
+  const isAdmin = role === 'admin'
+
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const todayObj = new Date()
+  const today = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, '0')}-${String(todayObj.getDate()).padStart(2, '0')}`
+  const [selectedDate, setSelectedDate] = useState(today)
   const [filter, setFilter] = useState('all')
 
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const today = '2026-06-28'
 
   const prevMonth = () => setCurrentDate(new Date(year, month - 1, 1))
   const nextMonth = () => setCurrentDate(new Date(year, month + 1, 1))
 
-  const getEventsForDate = (dateStr) => EVENTS.filter(e => e.date === dateStr)
-  const selectedEvents = EVENTS.filter(e => e.date === selectedDate && (filter === 'all' || e.type === filter))
+  // Role-based event filtering
+  const roleEvents = isAdmin ? EVENTS.filter(e => ['event', 'holiday', 'announcement'].includes(e.type)) : EVENTS
+
+  const getEventsForDate = (dateStr) => roleEvents.filter(e => e.date === dateStr)
+  const selectedEvents = roleEvents.filter(e => e.date === selectedDate && (filter === 'all' || e.type === filter))
+
+  // Role-based filter chips and legend
+  const filterChips = isAdmin
+    ? ['all', 'event', 'holiday', 'announcement']
+    : ['all', 'class', 'exam', 'deadline', 'event', 'holiday']
+
+  const legendTypes = isAdmin
+    ? Object.entries(EVENT_TYPES).filter(([key]) => ['event', 'holiday', 'announcement'].includes(key))
+    : Object.entries(EVENT_TYPES)
 
   // Build calendar grid
   const calendarDays = []
@@ -52,8 +70,8 @@ export default function CalendarPage() {
   return (
     <div className="cal-page">
       <div className="cal-header">
-        <h1>Academic Calendar</h1>
-        <p>University of the Punjab — Spring 2026</p>
+        <h1>{isAdmin ? 'Events Calendar' : 'Academic Calendar'}</h1>
+        <p>{isAdmin ? 'University events, holidays & notices' : 'University of the Punjab — Spring 2026'}</p>
       </div>
 
       <div className="cal-layout">
@@ -89,7 +107,7 @@ export default function CalendarPage() {
             })}
           </div>
           <div className="cal-legend">
-            {Object.entries(EVENT_TYPES).map(([key, val]) => (
+            {legendTypes.map(([key, val]) => (
               <div key={key} className="cal-legend-item">
                 <span className="cal-legend-dot" style={{ background: val.color }} />
                 <span>{val.label}</span>
@@ -104,7 +122,7 @@ export default function CalendarPage() {
             <h3>{new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
           </div>
           <div className="cal-event-filters">
-            {['all', 'class', 'exam', 'deadline', 'event', 'holiday'].map(f => (
+            {filterChips.map(f => (
               <button key={f} className={`cal-filter-chip ${filter === f ? 'active' : ''}`} onClick={() => setFilter(f)}>
                 {f === 'all' ? 'All' : EVENT_TYPES[f]?.label || f}
               </button>
