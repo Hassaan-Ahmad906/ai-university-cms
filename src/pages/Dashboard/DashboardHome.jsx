@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { useTheme } from '../../contexts/ThemeContext'
@@ -243,10 +243,38 @@ function AdminDashboard({ user, logo }) {
   const greeting = getGreeting()
   const GreetIcon = greeting.icon
 
+  const [userCount, setUserCount] = useState('—')
+  const [health, setHealth] = useState({ uptime: '—', apiMs: '—', db: 'Checking...', dbStatus: 'yellow', storage: '—' })
+
+  // Fetch live stats
+  useEffect(() => {
+    const token = localStorage.getItem('pu-lms-token')
+    // Get user count
+    fetch('http://localhost:5000/api/users?limit=1', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => setUserCount(d.total?.toLocaleString?.() || String(d.users?.length || 0)))
+      .catch(() => setUserCount('N/A'))
+
+    // Check API health (response time + db)
+    const start = performance.now()
+    fetch('http://localhost:5000/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => {
+        const ms = Math.round(performance.now() - start)
+        setHealth(prev => ({
+          ...prev,
+          apiMs: `${ms}ms`,
+          uptime: r.ok ? '100%' : '—',
+          db: r.ok ? 'Connected' : 'Error',
+          dbStatus: r.ok ? 'green' : 'red',
+        }))
+      })
+      .catch(() => setHealth(prev => ({ ...prev, apiMs: 'Offline', db: 'Unreachable', dbStatus: 'red', uptime: 'Offline' })))
+  }, [])
+
   const stats = [
-    { label: 'Total Users', value: '13,340', icon: Users, color: '#5c6bc0' },
-    { label: 'System Uptime', value: '99.97%', icon: Server, color: '#10b981' },
-    { label: 'DB Status', value: 'Connected', icon: Database, color: '#06b6d4' },
+    { label: 'Total Users', value: userCount, icon: Users, color: '#5c6bc0' },
+    { label: 'API Response', value: health.apiMs, icon: Server, color: '#10b981' },
+    { label: 'DB Status', value: health.db, icon: Database, color: health.dbStatus === 'green' ? '#06b6d4' : '#ef4444' },
     { label: 'CMS Version', value: 'v1.0.0', icon: Shield, color: '#c9a96e' },
   ]
 
@@ -268,10 +296,10 @@ function AdminDashboard({ user, logo }) {
   ]
 
   const healthItems = [
-    { label: 'Server Uptime', value: '99.97%', status: 'green' },
-    { label: 'API Response Time', value: '142ms', status: 'green' },
-    { label: 'Database Status', value: 'Connected', status: 'green' },
-    { label: 'Storage Used', value: '67% of 500GB', status: 'yellow' },
+    { label: 'Server Status', value: health.db === 'Connected' ? 'Online' : 'Offline', status: health.dbStatus },
+    { label: 'API Response Time', value: health.apiMs, status: health.dbStatus },
+    { label: 'Database', value: health.db, status: health.dbStatus },
+    { label: 'CMS Version', value: 'v1.0.0 (stable)', status: 'green' },
   ]
 
   return (

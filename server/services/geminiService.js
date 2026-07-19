@@ -1,17 +1,14 @@
 /**
- * Google Gemini AI Service — Multi-Model Fallback
- * Tries multiple Gemini models in sequence, falls back to
- * intelligent context-aware responses when API is unavailable.
+ * Google Gemini AI Service — New @google/genai SDK (Interactions API)
+ * Uses gemini-3.5-flash via the new interactions API.
+ * Falls back to intelligent context-aware responses when API is unavailable.
  */
 
 import dotenv from 'dotenv'
 dotenv.config()
 
-let genAI = null
+let ai = null
 let initialized = false
-
-// Models to try in order of preference
-const MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-pro']
 
 async function initGemini() {
   if (initialized) return
@@ -24,24 +21,22 @@ async function initGemini() {
   }
 
   try {
-    const { GoogleGenerativeAI } = await import('@google/generative-ai')
-    genAI = new GoogleGenerativeAI(apiKey)
+    const { GoogleGenAI } = await import('@google/genai')
+    ai = new GoogleGenAI({ apiKey })
 
-    // Test each model until one works
-    for (const modelName of MODELS) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName })
-        const result = await model.generateContent('Say hello in one word')
-        if (result.response) {
-          console.log(`✅ Gemini AI verified using model [${modelName}]`)
-          return
-        }
-      } catch { /* try next */ }
+    // Quick verification
+    const test = await ai.interactions.create({
+      model: 'gemini-3.5-flash',
+      input: 'Say hello in one word',
+    })
+    if (test.output_text) {
+      console.log('✅ Gemini AI verified using @google/genai [gemini-3.5-flash]')
+    } else {
+      console.log('⚠️  Gemini AI initialized but test returned no text — will retry per request')
     }
-    console.log('⚠️  Gemini AI key valid but all models quota-limited. Will retry per request.')
   } catch (error) {
     console.log('⚠️  Gemini AI init failed:', error.message, '— using smart fallback')
-    genAI = null
+    ai = null
   }
 }
 
@@ -49,25 +44,40 @@ initGemini()
 
 // ── System prompts per role ──
 const SYSTEM_PROMPTS = {
-  student: `You are "PU Study Buddy", an AI assistant for students at University of the Punjab. Help with explaining concepts, study tips, problem solving, exam preparation, and course guidance. Be encouraging, clear, and concise.`,
-  teacher: `You are "PU Teaching Assistant", an AI assistant for faculty at University of the Punjab. Help with creating quiz questions, grading rubrics, lesson planning, and research guidance. Be professional.`,
-  admin: `You are "PU Admin Assistant", an AI for administrators at University of the Punjab. Help with data analysis, report summaries, policy suggestions, and system optimization.`,
-  hod: `You are "PU HOD Advisor", an AI for Heads of Department. Help with curriculum planning, faculty workload, course allocations, and student performance metrics.`,
-  vc: `You are "PU Executive Advisor", an AI for the Vice Chancellor. Help with strategic governance, budget analysis, research rankings, and international collaboration insights.`,
-  dean: `You are "PU Dean Advisor", an AI for Faculty Deans. Help with cross-departmental analytics, academic standards, and new program approvals.`,
+  student: `You are "PU Study Buddy", an AI assistant for students at University of the Punjab. Help with explaining concepts, study tips, problem solving, exam preparation, and course guidance. Be encouraging, clear, and concise. Keep responses under 200 words.`,
+  teacher: `You are "PU Teaching Assistant", an AI assistant for faculty at University of the Punjab. Help with creating quiz questions, grading rubrics, lesson planning, and research guidance. Be professional. Keep responses under 200 words.`,
+  admin: `You are "PU Admin Assistant", an AI for administrators at University of the Punjab. Help with data analysis, report summaries, policy suggestions, and system optimization. Keep responses under 200 words.`,
+  hod: `You are "PU HOD Advisor", an AI for Heads of Department. Help with curriculum planning, faculty workload, course allocations, and student performance metrics. Keep responses under 200 words.`,
+  vc: `You are "PU Executive Advisor", an AI for the Vice Chancellor. Help with strategic governance, budget analysis, research rankings, and international collaboration insights. Keep responses under 200 words.`,
+  dean: `You are "PU Dean Advisor", an AI for Faculty Deans. Help with cross-departmental analytics, academic standards, and new program approvals. Keep responses under 200 words.`,
 }
 
+// Models to try in order
+const MODELS = ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']
+
 /**
- * Try generating content across fallback models
+ * Try generating content using the new Interactions API with fallback models
  */
-async function generateWithFallback(prompt) {
-  if (!genAI) return null
-  for (const modelName of MODELS) {
+async function generateWithInteractions(systemPrompt, userMessage) {
+  if (!ai) return null
+
+  for (const model of MODELS) {
     try {
-      const model = genAI.getGenerativeModel({ model: modelName })
-      const result = await model.generateContent(prompt)
-      if (result.response) return result.response.text()
-    } catch { continue }
+      const interaction = await ai.interactions.create({
+        model,
+        config: {
+          system_instruction: systemPrompt,
+        },
+        input: userMessage,
+      })
+
+      if (interaction.output_text) {
+        return interaction.output_text
+      }
+    } catch (err) {
+      console.log(`⚠️  Model ${model} failed: ${err.message || 'unknown error'} — trying next...`)
+      continue
+    }
   }
   return null
 }
@@ -107,20 +117,20 @@ function getSmartFallback(message, role) {
     return "✋ **Attendance Policy:**\n\n• Minimum 75% attendance required for exam eligibility\n• Medical leaves require certificates submitted within 7 days\n• Check your attendance percentage in the Attendance section"
   }
 
-  // Default response
+  // Default
   if (role === 'student') return "🎓 I'm here to help with your studies! You can ask me about:\n\n• Course concepts and explanations\n• Exam preparation strategies\n• Assignment guidance\n• CGPA and grade calculations\n• University policies\n\nWhat topic would you like to explore?"
   if (role === 'teacher') return "📚 I can assist with:\n\n• Creating assessment rubrics\n• Generating quiz questions\n• Analyzing student performance\n• Lesson planning suggestions\n\nWhat would you like help with?"
   return "🏛️ I can help with:\n\n• System analytics and reports\n• Policy recommendations\n• Workflow optimization\n• Department performance metrics\n\nHow can I assist you today?"
 }
 
 /**
- * Chat with AI — tries Gemini, falls back to smart responses
+ * Chat with AI — tries Gemini Interactions API, falls back to smart responses
  */
 export async function chatWithAI(message, role, context) {
   const systemPrompt = SYSTEM_PROMPTS[role] || SYSTEM_PROMPTS.student
-  const fullPrompt = `${systemPrompt}\n\nUser: ${message}${context ? `\nContext: ${context}` : ''}`
+  const userInput = context ? `${message}\n\nContext: ${context}` : message
 
-  const aiText = await generateWithFallback(fullPrompt)
+  const aiText = await generateWithInteractions(systemPrompt, userInput)
   if (aiText) return aiText
 
   // Smart fallback
@@ -132,9 +142,10 @@ export async function chatWithAI(message, role, context) {
  * Get study recommendations for a student
  */
 export async function getStudyRecommendations(user) {
-  const prompt = `${SYSTEM_PROMPTS.student}\n\nGenerate 3 study recommendations for a ${user?.program || 'Computer Science'} student in semester ${user?.semester || 6}. Return as JSON array with: title, description, priority (high/medium/low).`
+  const systemPrompt = SYSTEM_PROMPTS.student
+  const prompt = `Generate 3 study recommendations for a ${user?.program || 'Computer Science'} student in semester ${user?.semester || 6}. Return as JSON array with: title, description, priority (high/medium/low). Return ONLY the JSON, no markdown.`
 
-  const aiText = await generateWithFallback(prompt)
+  const aiText = await generateWithInteractions(systemPrompt, prompt)
   if (aiText) {
     try {
       return JSON.parse(aiText.replace(/```json|```/g, '').trim())
@@ -152,9 +163,10 @@ export async function getStudyRecommendations(user) {
  * Auto-grade a submission using AI
  */
 export async function autoGradeSubmission(content, rubric, totalMarks = 100) {
-  const prompt = `Grade this submission. Return JSON: { marks (out of ${totalMarks}), feedback (string), breakdown (array of {criteria, score, comment}) }.\n\nRubric: ${rubric || 'Correctness 40%, Code Quality 25%, Efficiency 20%, Documentation 15%'}\n\nSubmission:\n${content}`
+  const systemPrompt = 'You are an expert academic grader. Grade submissions accurately and provide constructive feedback.'
+  const prompt = `Grade this submission. Return JSON: { marks (out of ${totalMarks}), feedback (string), breakdown (array of {criteria, score, comment}) }. Return ONLY the JSON.\n\nRubric: ${rubric || 'Correctness 40%, Code Quality 25%, Efficiency 20%, Documentation 15%'}\n\nSubmission:\n${content}`
 
-  const aiText = await generateWithFallback(prompt)
+  const aiText = await generateWithInteractions(systemPrompt, prompt)
   if (aiText) {
     try {
       return JSON.parse(aiText.replace(/```json|```/g, '').trim())
