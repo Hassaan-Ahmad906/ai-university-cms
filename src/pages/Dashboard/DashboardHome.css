@@ -110,8 +110,11 @@
 .dash-welcome__logo {
   width: 56px;
   height: 56px;
+  border-radius: 10px;
+ 
   object-fit: contain;
   flex-shrink: 0;
+ margin-bottom: 13px;
 }
 
 .dash-welcome__greeting {
@@ -281,7 +284,7 @@
 }
 
 .dash-stat-card__value {
-  font-size: var(--text-2xl);
+  font-size: var(--text-lg);
   font-weight: var(--font-bold);
   color: var(--color-text-primary);
   line-height: var(--leading-tight);

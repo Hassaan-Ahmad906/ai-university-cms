@@ -25,11 +25,13 @@
 }
 
 .msg-sidebar__header {
+ 
   padding: var(--space-5) var(--space-5);
   border-bottom: 1px solid var(--color-border);
 }
 
 .msg-sidebar__header h2 {
+   margin-bottom: 15px;
   font-family: var(--font-heading);
   font-size: var(--text-xl);
   font-weight: 700;

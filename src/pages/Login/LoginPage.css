@@ -108,8 +108,8 @@
   z-index: 1;
   display: flex;
   width: 100%;
-  max-width: 1100px;
-  min-height: 680px;
+  max-width: 1050px;
+  min-height: 630px;
   border-radius: var(--radius-2xl);
   overflow: hidden;
   background: var(--glass-bg);
